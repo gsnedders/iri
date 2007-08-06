@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (C) 2004 Apple Computer, Inc.  All rights reserved.
+ * Copyright (C) 2004, 2007 Apple Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -11,7 +11,7 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY APPLE INC. ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
@@ -31,26 +31,67 @@
  */
 class IRI
 {
+	/**
+	 * Valid characters for the first character of the scheme
+	 */
 	const scheme_first_char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+	
+	/**
+	 * Valid characters for the scheme
+	 */
 	const scheme = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-.';
+	
+	/**
+	 * Whether the object represents a valid IRI
+	 *
+	 * @var bool
+	 */
 	private $is_valid = true;
 	
+	/**
+	 * __construct() is private as the class should be initated with new_iri()
+	 * or new_relative_iri()
+	 *
+	 * @see IRI::new_iri()
+	 * @see IRI::new_relative_iri()
+	 */
 	private function __construct()
 	{
 	}
 	
+	/**
+	 * Create a new IRI from a string
+	 *
+	 * @param string $iri
+	 * @return IRI
+	 */
 	public static function new_iri($iri)
 	{
 		$return = new IRI;
 		return $return->parse((string) $iri);
 	}
 	
+	/**
+	 * Create a new IRI from a base IRI and a relative string
+	 *
+	 * @param IRI $base
+	 * @param IRI $relative
+	 * @return IRI
+	 */
 	public static function new_relative_iri(IRI $base, $relative)
 	{
 		$return = new IRI;
 		return $return->init($base, (string) $relative);
 	}
 	
+	/**
+	 * Initalise the object if we have a base IRI and a relative one (merge the
+	 * two IRIs together, etc.)
+	 *
+	 * @param IRI $base
+	 * @param IRI $relative
+	 * @return IRI
+	 */
 	private function init(IRI $base, $relative)
 	{
 		// No traditional type-hinting in PHP, so type cast $relative

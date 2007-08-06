@@ -35,7 +35,11 @@ class IRI
 	const scheme = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-.';
 	private $is_valid = true;
 	
-	public function __construct()
+	private function __construct()
+	{
+	}
+	
+	public static function create()
 	{
 		$args = func_get_args();
 		switch (count($args))
@@ -43,20 +47,22 @@ class IRI
 			case 1:
 				if (is_string($args[0]))
 				{
-					return self::parse($args[0]);
+					$return = new IRI;
+					return $return->parse($args[0]);
 				}
 				break;
 			
 			case 2:
 				if ($args[0] instanceof IRI && is_string($args[1]))
 				{
-					return self::init($args[0], $args[1]);
+					$return = new IRI;
+					return $return->init($args[0], $args[1]);
 				}
 		}
-		throw new Exception('Invalid number of arguments or invalid argument types for IRI::__construct()');
+		throw new Exception('Invalid number of arguments or invalid argument types for IRI::create()');
 	}
 	
-	public function init(IRI $base, $relative)
+	private function init(IRI $base, $relative)
 	{
 		// No traditional type-hinting in PHP, so type cast $relative
 		// to string.
@@ -107,6 +113,19 @@ class IRI
 					}
 				}
 			}
+		}
+		
+		if ($absolute)
+		{
+			self::parse($relative);
+		}
+		elseif (!$base->is_hierarchical())
+		{
+			$this->is_valid = false;
+		}
+		elseif ($relative === '')
+		{
+			return $base;
 		}
 	}
 }

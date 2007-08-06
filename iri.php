@@ -68,7 +68,7 @@ class IRI
 		// to string.
 		$relative = (string) $relative;
 		
-		// Allow at least absolute URLs to resolve against an empty URL.
+		// Allow at least absolute IRIs to resolve against an empty IRI.
 		if (!$base->is_valid() && !$base->is_empty())
 		{
 			$this->is_valid = false;
@@ -100,12 +100,13 @@ class IRI
 				$position += strspn($relative, self::scheme, $position);
 				if ($relative_len < $position && $relative[$position] === ':')
 				{
-					if ($relative_len < $position + 1
-						&& $relative[$position + 1] !== '/'
-						&& $base->protocol() == substr($relative, 0, $position)
+					$position++;
+					if ($relative_len < $position
+						&& $relative[$position] !== '/'
+						&& $base->protocol() == substr($relative, 0, $position - 1)
 						&& $base->is_hierarchical())
 					{
-						$relative = substr($relative, $position + 1);
+						$relative = substr($relative, $position);
 					}
 					else
 					{
@@ -119,13 +120,45 @@ class IRI
 		{
 			self::parse($relative);
 		}
+		// If the base is empty or opaque (e.g. data: or javascript:), then the
+		// IRI is invalid.
 		elseif (!$base->is_hierarchical())
 		{
 			$this->is_valid = false;
 		}
+		// the reference must be empty - the RFC says this is a reference to the
+		// same document.
 		elseif ($relative === '')
 		{
 			return $base;
+		}
+		else
+		{
+			switch ($relative[0])
+			{
+				// Must be fragment-only reference
+				case '#':
+					self::parse(substr($base->iri_string(), 0, $base->query_end_pos()) . $relative);
+					break;
+				
+				// Query-only reference
+				case '?':
+					self::parse(substr($base->iri_string(), 0, $base->path_end_pos()) . $relative);
+					break;
+				
+				case '/':
+					// Authority
+					if (isset($relative[1]) && $relative[1] === '/')
+					{
+						self::parse(substr($base->iri_string(), 0, $base->scheme_end_pos() + 1) . $relative);
+					}
+					// Absolute path
+					else
+					{
+						self::parse(substr($base->iri_string(), 0, $base->port_end_pos()) . $relative);
+					}
+					break;
+			}
 		}
 	}
 }

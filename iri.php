@@ -48,7 +48,9 @@ class IRI
 	{
 		$parsed = $this->parse_iri((string) $iri);
 		$this->set_scheme($parsed['scheme']);
-		$this->set_authority($parsed['authority']);
+		$this->set_userinfo($parsed['userinfo']);
+		$this->set_host($parsed['host']);
+		$this->set_port($parsed['port']);
 		$this->set_path($parsed['path']);
 		$this->set_query($parsed['query']);
 		$this->set_fragment($parsed['fragment']);
@@ -67,17 +69,17 @@ class IRI
 		{
 			return $cache[$iri];
 		}
-		elseif (preg_match('/^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/', $iri, $match))
+		elseif (preg_match('/^(([^:\/?#]+):)?(\/\/(([^\/?#@]*)@)?([^\/?#]*)(:([0-9]*))?)?([^?#]*)(\?([^#]*))?(#(.*))?$/', $iri, $match))
 		{
-			for ($i = count($match); $i <= 9; $i++)
+			for ($i = count($match); $i <= 13; $i++)
 			{
 				$match[$i] = '';
 			}
-			return $cache[$iri] = array('scheme' => $match[2], 'authority' => $match[4], 'path' => $match[5], 'query' => $match[7], 'fragment' => $match[9]);
+			return $cache[$iri] = array('scheme' => $match[2], 'userinfo' => $match[5], 'host' => $match[6], 'port' => $match[8], 'path' => $match[9], 'query' => $match[11], 'fragment' => $match[13]);
 		}
 		else
 		{
-			return $cache[$iri] = array('scheme' => '', 'authority' => '', 'path' => '', 'query' => '', 'fragment' => '');
+			return $cache[$iri] = array('scheme' => '', 'userinfo' => '', 'host' => '', 'port' => '', 'path' => '', 'query' => '', 'fragment' => '');
 		}
 	}
 	
@@ -112,58 +114,6 @@ class IRI
 	}
 	
 	/**
-	 * Set the authority. Returns true on success, false on failure (if there are
-	 * any invalid characters).
-	 *
-	 * @param string $authority
-	 * @return bool
-	 */
-	private function set_authority($authority)
-	{
-		$return = 1;
-		$old_userinfo = $this->userinfo;
-		$old_port = $this->port;
-		
-		if (($at_position = strpos($authority, '@')) !== false)
-		{
-			$return &= $this->set_userinfo(substr($authority, 0, $at_position));
-		}
-		else
-		{
-			$this->set_userinfo(null);
-			$at_position = 0;
-		}
-		
-		if (($colon_position = strpos($authority, ':', $at_position)) !== false)
-		{
-			if (isset($authority[$colon_position + 1]))
-			{
-				$return &= $this->set_port(substr($authority, $colon_position + 1));
-			}
-			else
-			{
-				$authority = substr($authority, 0, -1);
-			}
-		}
-		else
-		{
-			$this->set_port(null);
-			$colon_position = strlen($authority);
-		}
-		
-		if ($return && $this->set_host(substr($authority, $at_position + 1, $colon_position - $at_position + 1)))
-		{
-			return true;
-		}
-		else
-		{
-			$this->userinfo = $old_userinfo;
-			$this->port = $old_port;
-			return false;
-		}
-	}
-	
-	/**
 	 * Set the userinfo.
 	 *
 	 * @param string $userinfo
@@ -177,7 +127,11 @@ class IRI
 		{
 			if ($userinfo[$position] === '%')
 			{
-				if ($position + 2 >= $strlen || !strspn($userinfo, self::hexdigit, $position + 1, 2))
+				if ($position + 2 < $strlen && strspn($userinfo, self::hexdigit, $position + 1, 2))
+				{
+					$userinfo = substr_replace(substr($userinfo, $position + 1, 2), strtoupper(substr($userinfo, $position + 1, 2)), $position + 1, 2);
+				}
+				else
 				{
 					$userinfo = substr_replace($userinfo, '%25', $position, 1);
 					$strlen += 2;
@@ -217,4 +171,36 @@ class IRI
 		{
 			return false;
 		}
+	}
+	
+	/**
+	 * Set the path.
+	 *
+	 * @param string $path
+	 * @return bool
+	 */
+	private function set_path($path)
+	{
+		if ($path === null || $path === '')
+		{
+			$this->path = null;
+			return true;
+		}
+		elseif (substr($path, 0, 2) === '//' && $this->host === null)
+		{
+			return false;
+		}
+		elseif ($this->scheme === null)
+		{
+			if (($end_segment = strpos($path, '/')) === false)
+			{
+				$end_segment = strlen($path);
+			}
+			if (($colon = strpos($path, ':')) !== false && $colon < $end_segment)
+			{
+				return false;
+			}
+		}
+		$this->path = $path;
+		return true;
 	}

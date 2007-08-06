@@ -33,12 +33,20 @@ class IRI
 {
 	const scheme_first_char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 	const scheme = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-.';
+	private $is_valid = true;
 	
-	public function __construct(IRI $base, $relative)
+	public function init(IRI $base, $relative)
 	{
 		// No traditional type-hinting in PHP, so type cast $relative
 		// to string.
 		$relative = (string) $relative;
+		
+		// Allow at least absolute URLs to resolve against an empty URL.
+		if (!$base->is_valid() && !$base->is_empty())
+		{
+			$this->is_valid = false;
+			return;
+		}
 		
 		// For compatibility with Win IE, we must treat backslashes as if
 		// they were slashes, as long as we're not dealing with the

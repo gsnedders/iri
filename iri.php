@@ -107,7 +107,7 @@ class IRI
 		
 		if ($absolute)
 		{
-			self::parse($relative);
+			$this->parse($relative);
 		}
 		// If the base is empty or opaque (e.g. data: or javascript:), then the
 		// IRI is invalid unless the relative IRI is a single fragment.
@@ -115,7 +115,7 @@ class IRI
 		{
 			if (isset($relative[0]) && $relative[0] === '#')
 			{
-				self::parse(substr($base->iri_string(), 0, $base->query_end_pos()) . $relative);
+				$this->parse(substr($base->iri_string(), 0, $base->query_end_pos()) . $relative);
 			}
 			else
 			{
@@ -135,24 +135,24 @@ class IRI
 			{
 				// Must be fragment-only reference
 				case '#':
-					self::parse(substr($base->iri_string(), 0, $base->query_end_pos()) . $relative);
+					$this->parse(substr($base->iri_string(), 0, $base->query_end_pos()) . $relative);
 					break;
 				
 				// Query-only reference
 				case '?':
-					self::parse(substr($base->iri_string(), 0, $base->path_end_pos()) . $relative);
+					$this->parse(substr($base->iri_string(), 0, $base->path_end_pos()) . $relative);
 					break;
 				
 				case '/':
 					// Authority
 					if (isset($relative[1]) && $relative[1] === '/')
 					{
-						self::parse(substr($base->iri_string(), 0, $base->scheme_end_pos() + 1) . $relative);
+						$this->parse(substr($base->iri_string(), 0, $base->scheme_end_pos() + 1) . $relative);
 					}
 					// Absolute path
 					else
 					{
-						self::parse(substr($base->iri_string(), 0, $base->port_end_pos()) . $relative);
+						$this->parse(substr($base->iri_string(), 0, $base->port_end_pos()) . $relative);
 					}
 					break;
 				
@@ -160,11 +160,11 @@ class IRI
 				default:
 					if ($base->scheme_end_pos() + 1 !== $base->port_end_pos() && $base->port_end_pos() === $base->path_end_pos())
 					{
-						self::parse(substr($base->iri_string(), 0, $base->port_end_pos()) . '/' . $relative);
+						$this->parse(substr($base->iri_string(), 0, $base->port_end_pos()) . '/' . $relative);
 					}
 					else
 					{
-						self::parse(substr($base->iri_string(), 0, $base->port_end_pos()) . dirname('/' . substr($base->iri_string(), $base->port_end_pos(), $base->path_end_pos()) . '.') . $relative);
+						$this->parse(substr($base->iri_string(), 0, $base->port_end_pos()) . dirname('/' . substr($base->iri_string(), $base->port_end_pos(), $base->path_end_pos()) . '.') . $relative);
 					}
 					break;
 			}

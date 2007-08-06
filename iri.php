@@ -49,6 +49,69 @@ class IRI
 	private $is_valid = true;
 	
 	/**
+	 * Position of end of scheme
+	 *
+	 * @var int
+	 */
+	private $scheme_end_pos;
+	
+	/**
+	 * Position of start of username
+	 *
+	 * @var int
+	 */
+	private $user_start_pos;
+	
+	/**
+	 * Position of end of username
+	 *
+	 * @var int
+	 */
+	private $user_end_pos;
+	
+	/**
+	 * Position of end of password
+	 *
+	 * @var int
+	 */
+	private $password_end_pos;
+	
+	/**
+	 * Position of end of host
+	 *
+	 * @var int
+	 */
+	private $host_end_pos;
+	
+	/**
+	 * Position of end of port
+	 *
+	 * @var int
+	 */
+	private $port_end_pos;
+	
+	/**
+	 * Position of end of path
+	 *
+	 * @var int
+	 */
+	private $path_end_pos;
+	
+	/**
+	 * Position of end of query
+	 *
+	 * @var int
+	 */
+	private $query_end_pos;
+	
+	/**
+	 * Position of end of fragment
+	 *
+	 * @var int
+	 */
+	private $fragment_end_pos;
+	
+	/**
 	 * __construct() is private as the class should be initated with new_iri()
 	 * or new_relative_iri()
 	 *
@@ -211,6 +274,36 @@ class IRI
 			}
 		}
 		return $this;
+	}
+	
+	private function parse($iri)
+	{
+		// Valid IRI must be non-empty, and must start with an
+		// alphabetic character.
+		if ($iri === '' || !strspn($iri, self::scheme_first_char, 0, 1))
+		{
+			$this->is_valid = false;
+			return;
+		}
+		
+		$scheme_end = 1 + strspn($iri, self::scheme, 1);
+		
+		if (!isset($iri[$scheme_end]) || $iri[$scheme_end] !== ':')
+		{
+			$this->is_valid = false;
+			return;
+		}
+		
+		$user_start = $scheme_end + 1;
+		$user_end = null;
+		$password_start = null;
+		$password_end = null;
+		$host_start = null;
+		$host_end = null;
+		$port_start = null;
+		$port_end = null;
+		
+		$hierarchical = (bool) (isset($iri[$scheme_end + 1]) && $iri[$scheme_end + 1] === '/');
 	}
 }
 

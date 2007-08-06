@@ -18,12 +18,27 @@ class IRI
 	const scheme = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-.';
 	
 	/**
+	 * Valid characters for the userinfo (minus pct-encoded)
+	 */
+	const userinfo = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:';
+	
+	/**
+	 * Valid characters for HEXDIGIT
+	 */
+	const hexdigit = '0123456789ABCDEFabcdef';
+	
+	/**
 	 * Whether the object represents a valid IRI
 	 *
 	 * @var bool
 	 */
 	private $valid = true;
 	
+	/**
+	 * Create a new IRI object, from a specified string
+	 *
+	 * @param string $iri
+	 */
 	public function __construct($iri)
 	{
 		$parsed = $this->parse_iri((string) $iri);
@@ -34,6 +49,12 @@ class IRI
 		$this->set_fragment($parsed['fragment']);
 	}
 	
+	/**
+	 * Parse an IRI into scheme/authority.path/query/fragment segments
+	 *
+	 * @param string $iri
+	 * @return array
+	 */
 	private function parse_iri($iri)
 	{
 		static $cache = array();
@@ -55,6 +76,13 @@ class IRI
 		}
 	}
 	
+	/**
+	 * Set the scheme. Returns true on success, false on failure (if there are
+	 * any invalid characters).
+	 *
+	 * @param string $scheme
+	 * @return bool
+	 */
 	private function set_scheme($scheme)
 	{
 		$len = strlen($scheme);
@@ -78,14 +106,26 @@ class IRI
 		return true;
 	}
 	
+	/**
+	 * Set the authority. Returns true on success, false on failure (if there are
+	 * any invalid characters).
+	 *
+	 * @param string $authority
+	 * @return bool
+	 */
 	private function set_authority($authority)
 	{
+		$return = 1;
+		$old_userinfo = $this->userinfo;
+		$old_port = $this->port;
+		
 		if (($at_position = strpos($authority, '@')) !== false)
 		{
-			$this->set_userinfo(substr($authority, 0, $at_position));
+			$return &= $this->set_userinfo(substr($authority, 0, $at_position));
 		}
 		else
 		{
+			$this->set_userinfo(null);
 			$at_position = 0;
 		}
 		
@@ -93,7 +133,7 @@ class IRI
 		{
 			if (isset($authority[$colon_position + 1]))
 			{
-				$this->set_port(substr($authority, $colon_position + 1));
+				$return &= $this->set_port(substr($authority, $colon_position + 1));
 			}
 			else
 			{
@@ -102,8 +142,49 @@ class IRI
 		}
 		else
 		{
+			$this->set_port(null);
 			$colon_position = strlen($authority);
 		}
 		
-		$this->set_host(substr($authority, $at_position + 1, $colon_position - $at_position + 1));
+		if ($return && $this->set_host(substr($authority, $at_position + 1, $colon_position - $at_position + 1)))
+		{
+			return true;
+		}
+		else
+		{
+			$this->userinfo = $old_userinfo;
+			$this->port = $old_port;
+			return false;
+		}
+	}
+	
+	/**
+	 * Set the userinfo.
+	 *
+	 * @param string $userinfo
+	 * @return bool
+	 */
+	private function set_userinfo($userinfo)
+	{
+		$position = 0;
+		$strlen = strlen($userinfo);
+		while (($position += strspn($userinfo, self::userinfo, $position)) < $strlen)
+		{
+			if ($userinfo[$position] === '%')
+			{
+				if ($position + 2 >= $strlen || !strspn($userinfo, self::hexdigit, $position + 1, 2))
+				{
+					$userinfo = substr_replace($userinfo, '%25', $position, 1);
+					$strlen += 2;
+				}
+				$position += 3;
+			}
+			else
+			{
+				$userinfo = str_replace($userinfo[$position], strtoupper(dechex(ord($userinfo[$position]))), $userinfo, $count);
+				$strlen += 2 * $count;
+			}
+		}
+		$this->userinfo = $userinfo;
+		return true;
 	}

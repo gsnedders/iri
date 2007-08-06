@@ -31,12 +31,53 @@
  */
 class IRI
 {
+	const scheme_first_char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+	const scheme = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-.';
+	
 	public function __construct(IRI $base, $relative)
 	{
-		// For compatibility with IE/Win, we must treat backslashes as if they were slashes, as long as we're not dealing with the javascript schema
+		// No traditional type-hinting in PHP, so type cast $relative
+		// to string.
+		$relative = (string) $relative;
+		
+		// For compatibility with Win IE, we must treat backslashes as if
+		// they were slashes, as long as we're not dealing with the
+		// javascript: schema.
 		if (substr($relative, 0, 11) !== 'javascript:')
 		{
 			$relative = str_replace('\\', '/', $relative);
+		}
+		
+		// Workaround for leading/trailing whitespace
+		$relative = trim($relative, ' ');
+		
+		// According to the RFC, the reference should be interpreted as an
+		// absolute URI if possible, using the "leftmost, longest"
+		// algorithm. If the URI reference is absolute it will have a
+		// scheme, meaning that it will have a colon before the first
+		// non-scheme element.
+		$absolute = false;
+		$relative_len = strlen($relative);
+		if ($relative !== '' && ($position = strspn($relative, self::scheme_first_char)))
+		{
+			if ($relative_len < $position)
+			{
+				$position += strspn($relative, self::scheme, $position);
+				if ($relative_len < $position && $relative[$position] === ':')
+				{
+					if ($relative_len < $position + 1
+						&& $relative[$position + 1] !== '/'
+						&& $base->protocol() == substr($relative, 0, $position)
+						&& $base->is_hierarchical())
+					{
+						$relative = substr($relative, $position + 1);
+					}
+					else
+					{
+						$absolute = true;
+					}
+				}
+			}
 		}
 	}
 }

@@ -126,7 +126,7 @@ class IRI
 		{
 			$this->is_valid = false;
 		}
-		// the reference must be empty - the RFC says this is a reference to the
+		// The reference must be empty - the RFC says this is a reference to the
 		// same document.
 		elseif ($relative === '')
 		{
@@ -156,6 +156,18 @@ class IRI
 					else
 					{
 						self::parse(substr($base->iri_string(), 0, $base->port_end_pos()) . $relative);
+					}
+					break;
+				
+				// Relative Path
+				default:
+					if ($base->scheme_end_pos() + 1 !== $base->port_end_pos() && $base->port_end_pos() === $base->path_end_pos())
+					{
+						self::parse(substr($base->iri_string(), 0, $base->port_end_pos()) . '/' . $relative);
+					}
+					else
+					{
+						self::parse(substr($base->iri_string(), 0, $base->port_end_pos()) . dirname('/' . substr($base->iri_string(), $base->port_end_pos(), $base->path_end_pos()) . '.') . $relative);
 					}
 					break;
 			}

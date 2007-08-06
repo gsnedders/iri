@@ -23,6 +23,11 @@ class IRI
 	const userinfo = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:';
 	
 	/**
+	 * Valid characters for DIGIT
+	 */
+	const digit = '0123456789';
+	
+	/**
 	 * Valid characters for HEXDIGIT
 	 */
 	const hexdigit = '0123456789ABCDEFabcdef';
@@ -187,4 +192,29 @@ class IRI
 		}
 		$this->userinfo = $userinfo;
 		return true;
+	}
+	
+	/**
+	 * Set the port. Returns true on success, false on failure (if there are
+	 * any invalid characters).
+	 *
+	 * @param string $port
+	 * @return bool
+	 */
+	private function set_port($port)
+	{
+		if ($port === null || $port === '')
+		{
+			$this->port = null;
+			return true;
+		}
+		elseif (strspn($port, self::digit) === strlen($port))
+		{
+			$this->port = (int) $port;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}

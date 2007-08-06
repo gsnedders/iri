@@ -23,6 +23,11 @@ class IRI
 	const userinfo = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:';
 	
 	/**
+	 * Valid characters for the path (minus pct-encoded and colon)
+	 */
+	const path = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=@/';
+	
+	/**
 	 * Valid characters for DIGIT
 	 */
 	const digit = '0123456789';
@@ -84,6 +89,41 @@ class IRI
 	}
 	
 	/**
+	 * Replace invalid character with percent encoding
+	 *
+	 * @param string $string Input string
+	 * @param string $valid_chars Valid characters
+	 * @return string
+	 */
+	private function replace_invalid_with_pct_encoding($string, $valid_chars)
+	{
+		$position = 0;
+		$strlen = strlen($string);
+		while (($position += strspn($string, $valid_chars, $position)) < $strlen)
+		{
+			if ($string[$position] === '%')
+			{
+				if ($position + 2 < $strlen && strspn($string, self::hexdigit, $position + 1, 2))
+				{
+					$string = substr_replace(substr($string, $position + 1, 2), strtoupper(substr($string, $position + 1, 2)), $position + 1, 2);
+				}
+				else
+				{
+					$string = substr_replace($string, '%25', $position, 1);
+					$strlen += 2;
+				}
+				$position += 3;
+			}
+			else
+			{
+				$string = str_replace($string[$position], strtoupper(dechex(ord($string[$position]))), $string, $count);
+				$strlen += 2 * $count;
+			}
+		}
+		return $string;
+	}
+	
+	/**
 	 * Set the scheme. Returns true on success, false on failure (if there are
 	 * any invalid characters).
 	 *
@@ -109,7 +149,7 @@ class IRI
 					return false;
 				}
 		}
-		$this->scheme = $scheme;
+		$this->scheme = strtolower($scheme);
 		return true;
 	}
 	
@@ -121,30 +161,7 @@ class IRI
 	 */
 	private function set_userinfo($userinfo)
 	{
-		$position = 0;
-		$strlen = strlen($userinfo);
-		while (($position += strspn($userinfo, self::userinfo, $position)) < $strlen)
-		{
-			if ($userinfo[$position] === '%')
-			{
-				if ($position + 2 < $strlen && strspn($userinfo, self::hexdigit, $position + 1, 2))
-				{
-					$userinfo = substr_replace(substr($userinfo, $position + 1, 2), strtoupper(substr($userinfo, $position + 1, 2)), $position + 1, 2);
-				}
-				else
-				{
-					$userinfo = substr_replace($userinfo, '%25', $position, 1);
-					$strlen += 2;
-				}
-				$position += 3;
-			}
-			else
-			{
-				$userinfo = str_replace($userinfo[$position], strtoupper(dechex(ord($userinfo[$position]))), $userinfo, $count);
-				$strlen += 2 * $count;
-			}
-		}
-		$this->userinfo = $userinfo;
+		$this->userinfo = $this->replace_invalid_with_pct_encoding($userinfo, self::userinfo);
 		return true;
 	}
 	
@@ -186,7 +203,7 @@ class IRI
 			$this->path = null;
 			return true;
 		}
-		elseif (substr($path, 0, 2) === '//' && $this->host === null)
+		elseif (substr($path, 0, 2) === '//' && $this->userinfo === null && $this->host === null && $this->port === null)
 		{
 			return false;
 		}
@@ -201,6 +218,6 @@ class IRI
 				return false;
 			}
 		}
-		$this->path = $path;
+		$this->path = $this->replace_invalid_with_pct_encoding($path, self::path);
 		return true;
 	}

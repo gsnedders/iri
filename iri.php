@@ -39,27 +39,16 @@ class IRI
 	{
 	}
 	
-	public static function create()
+	public static function new_iri($iri)
 	{
-		$args = func_get_args();
-		switch (count($args))
-		{
-			case 1:
-				if (is_string($args[0]))
-				{
-					$return = new IRI;
-					return $return->parse($args[0]);
-				}
-				break;
-			
-			case 2:
-				if ($args[0] instanceof IRI && is_string($args[1]))
-				{
-					$return = new IRI;
-					return $return->init($args[0], $args[1]);
-				}
-		}
-		throw new Exception('Invalid number of arguments or invalid argument types for IRI::create()');
+		$return = new IRI;
+		return $return->parse((string) $iri);
+	}
+	
+	public static function new_relative_iri(IRI $base, $relative)
+	{
+		$return = new IRI;
+		return $return->init($base, (string) $relative);
 	}
 	
 	private function init(IRI $base, $relative)
@@ -121,10 +110,18 @@ class IRI
 			self::parse($relative);
 		}
 		// If the base is empty or opaque (e.g. data: or javascript:), then the
-		// IRI is invalid.
+		// IRI is invalid unless the relative IRI is a single fragment.
 		elseif (!$base->is_hierarchical())
 		{
-			$this->is_valid = false;
+			if (isset($relative[0]) && $relative[0] === '#')
+			{
+				self::parse(substr($base->iri_string(), 0, $base->query_end_pos()) . $relative);
+			}
+			else
+			{
+				$this->is_valid = false;
+				return;
+			}
 		}
 		// The reference must be empty - the RFC says this is a reference to the
 		// same document.
@@ -172,6 +169,7 @@ class IRI
 					break;
 			}
 		}
+		return $this;
 	}
 }
 

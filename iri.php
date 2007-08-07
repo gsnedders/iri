@@ -162,13 +162,13 @@ class IRI
 		if ($relative !== '')
 		{
 			$relative = new IRI($relative);
-			if ($relative->get_scheme() !== '')
+			if ($relative->get_scheme() !== null)
 			{
 				$target = $relative;
 			}
-			elseif ($base->get_iri() !== '')
+			elseif ($base->get_iri() !== null)
 			{
-				if ($relative->get_authority() !== '')
+				if ($relative->get_authority() !== null)
 				{
 					$target = $relative;
 					$target->set_scheme($base->get_scheme());
@@ -180,13 +180,13 @@ class IRI
 					$target->set_userinfo($base->get_userinfo());
 					$target->set_host($base->get_host());
 					$target->set_port($base->get_port());
-					if ($relative->get_path() !== '')
+					if ($relative->get_path() !== null)
 					{
 						if (strpos($relative->get_path(), '/') === 0)
 						{
 							$target->set_path($relative->get_path());
 						}
-						elseif (($base->get_userinfo() !== '' || $base->get_host() !== '' || $base->get_port() !== '') && $base->get_path() === '')
+						elseif (($base->get_userinfo() !== null || $base->get_host() !== null || $base->get_port() !== null) && $base->get_path() === null)
 						{
 							$target->set_path('/' . $relative->get_path());
 						}
@@ -203,11 +203,11 @@ class IRI
 					else
 					{
 						$target->set_path($base->get_path());
-						if ($relative->get_query() !== '')
+						if ($relative->get_query() !== null)
 						{
 							$target->set_query($relative->get_query());
 						}
-						elseif ($base->get_query() !== '')
+						elseif ($base->get_query() !== null)
 						{
 							$target->set_query($base->get_query());
 						}
@@ -411,26 +411,33 @@ class IRI
 	 */
 	public function set_scheme($scheme)
 	{
-		$len = strlen($scheme);
-		switch (true)
+		if ($scheme === null || $scheme === '')
 		{
-			case $len > 1:
-				if (!strspn($scheme, self::scheme, 1))
-				{
-					$this->scheme = null;
-					$this->valid[__FUNCTION__] = false;
-					return false;
-				}
-			
-			case $len > 0:
-				if (!strspn($scheme, self::scheme_first_char, 0, 1))
-				{
-					$this->scheme = null;
-					$this->valid[__FUNCTION__] = false;
-					return false;
-				}
+			$this->scheme = null;
 		}
-		$this->scheme = strtolower($scheme);
+		else
+		{
+			$len = strlen($scheme);
+			switch (true)
+			{
+				case $len > 1:
+					if (!strspn($scheme, self::scheme, 1))
+					{
+						$this->scheme = null;
+						$this->valid[__FUNCTION__] = false;
+						return false;
+					}
+				
+				case $len > 0:
+					if (!strspn($scheme, self::scheme_first_char, 0, 1))
+					{
+						$this->scheme = null;
+						$this->valid[__FUNCTION__] = false;
+						return false;
+					}
+			}
+			$this->scheme = strtolower($scheme);
+		}
 		$this->valid[__FUNCTION__] = true;
 		return true;
 	}
@@ -475,7 +482,14 @@ class IRI
 	 */
 	public function set_userinfo($userinfo)
 	{
-		$this->userinfo = $this->replace_invalid_with_pct_encoding($userinfo, self::userinfo);
+		if ($userinfo === null || $userinfo === '')
+		{
+			$this->userinfo = null;
+		}
+		else
+		{
+			$this->userinfo = $this->replace_invalid_with_pct_encoding($userinfo, self::userinfo);
+		}
 		$this->valid[__FUNCTION__] = true;
 		return true;
 	}

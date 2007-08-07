@@ -207,17 +207,6 @@ class IRI
 		{
 			return false;
 		}
-		elseif ($this->scheme === null)
-		{
-			if (($end_segment = strpos($path, '/')) === false)
-			{
-				$end_segment = strlen($path);
-			}
-			if (($colon = strpos($path, ':')) !== false && $colon < $end_segment)
-			{
-				return false;
-			}
-		}
 		$this->path = $this->replace_invalid_with_pct_encoding($path, self::path);
 		return true;
 	}

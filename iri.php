@@ -391,35 +391,6 @@ class IRI
 	}
 	
 	/**
-	 * Set the port. Returns true on success, false on failure (if there are
-	 * any invalid characters).
-	 *
-	 * @param string $port
-	 * @return bool
-	 */
-	public function set_port($port)
-	{
-		if ($port === null || $port === '')
-		{
-			$this->port = null;
-			$this->valid[__FUNCTION__] = true;
-			return true;
-		}
-		elseif (strspn($port, self::digit) === strlen($port))
-		{
-			$this->port = (int) $port;
-			$this->valid[__FUNCTION__] = true;
-			return true;
-		}
-		else
-		{
-			$this->port = null;
-			$this->valid[__FUNCTION__] = false;
-			return false;
-		}
-	}
-	
-	/**
 	 * Set the host. Returns true on success, false on failure (if there are
 	 * any invalid characters).
 	 *
@@ -454,6 +425,35 @@ class IRI
 			$this->host = $this->replace_invalid_with_pct_encoding($host, self::reg_name, self::lowercase);
 			$this->valid[__FUNCTION__] = true;
 			return true;
+		}
+	}
+	
+	/**
+	 * Set the port. Returns true on success, false on failure (if there are
+	 * any invalid characters).
+	 *
+	 * @param string $port
+	 * @return bool
+	 */
+	public function set_port($port)
+	{
+		if ($port === null || $port === '')
+		{
+			$this->port = null;
+			$this->valid[__FUNCTION__] = true;
+			return true;
+		}
+		elseif (strspn($port, self::digit) === strlen($port))
+		{
+			$this->port = (int) $port;
+			$this->valid[__FUNCTION__] = true;
+			return true;
+		}
+		else
+		{
+			$this->port = null;
+			$this->valid[__FUNCTION__] = false;
+			return false;
 		}
 	}
 	

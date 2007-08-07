@@ -264,7 +264,7 @@ class IRI
 	private function remove_dot_segments($input)
 	{
 		$output = '';
-		while (strpos($input, './') !== false || strpos($input, '/.') !== false || $input == '.' || $input == '..')
+		while (strpos($input, './') !== false || strpos($input, '/.') !== false || $input === '.' || $input === '..')
 		{
 			// A: If the input buffer begins with a prefix of "../" or "./", then remove that prefix from the input buffer; otherwise,
 			if (strpos($input, '../') === 0)
@@ -280,7 +280,7 @@ class IRI
 			{
 				$input = substr_replace($input, '/', 0, 3);
 			}
-			elseif ($input == '/.')
+			elseif ($input === '/.')
 			{
 				$input = '/';
 			}
@@ -290,13 +290,13 @@ class IRI
 				$input = substr_replace($input, '/', 0, 4);
 				$output = substr_replace($output, '', strrpos($output, '/'));
 			}
-			elseif ($input == '/..')
+			elseif ($input === '/..')
 			{
 				$input = '/';
 				$output = substr_replace($output, '', strrpos($output, '/'));
 			}
 			// D: if the input buffer consists only of "." or "..", then remove that from the input buffer; otherwise,
-			elseif ($input == '.' || $input == '..')
+			elseif ($input === '.' || $input === '..')
 			{
 				$input = '';
 			}

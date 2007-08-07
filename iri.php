@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * IPv6 tools, inc. validator
+ */
+require_once 'Net_IPv6/IPv6.php';
+
+/**
  * IRI parser/serialiser
  *
  * @package IRI
@@ -21,6 +26,11 @@ class IRI
 	 * Valid characters for the userinfo (minus pct-encoded)
 	 */
 	const userinfo = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:';
+	
+	/**
+	 * Valid characters for the reg-name (minus pct-encoded)
+	 */
+	const reg_name = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=';
 	
 	/**
 	 * Valid characters for the path (minus pct-encoded and colon)
@@ -130,7 +140,7 @@ class IRI
 	 * @param string $scheme
 	 * @return bool
 	 */
-	private function set_scheme($scheme)
+	public function set_scheme($scheme)
 	{
 		$len = strlen($scheme);
 		switch (true)
@@ -138,6 +148,7 @@ class IRI
 			case $len > 1:
 				if (!strspn($scheme, self::scheme, 1))
 				{
+					$this->scheme = null;
 					$this->valid = false;
 					return false;
 				}
@@ -145,6 +156,7 @@ class IRI
 			case $len > 0:
 				if (!strspn($scheme, self::scheme_first_char, 0, 1))
 				{
+					$this->scheme = null;
 					$this->valid = false;
 					return false;
 				}
@@ -159,7 +171,7 @@ class IRI
 	 * @param string $userinfo
 	 * @return bool
 	 */
-	private function set_userinfo($userinfo)
+	public function set_userinfo($userinfo)
 	{
 		$this->userinfo = $this->replace_invalid_with_pct_encoding($userinfo, self::userinfo);
 		return true;
@@ -172,7 +184,7 @@ class IRI
 	 * @param string $port
 	 * @return bool
 	 */
-	private function set_port($port)
+	public function set_port($port)
 	{
 		if ($port === null || $port === '')
 		{
@@ -186,7 +198,44 @@ class IRI
 		}
 		else
 		{
+			$this->port = null;
+			$this->valid = false;
 			return false;
+		}
+	}
+	
+	/**
+	 * Set the host. Returns true on success, false on failure (if there are
+	 * any invalid characters).
+	 *
+	 * @param string $host
+	 * @return bool
+	 */
+	public function set_host($host)
+	{
+		if ($host === null || $host === '')
+		{
+			$this->host = null;
+			return true;
+		}
+		elseif ($host[0] === '[' && substr($host, -1) === ']')
+		{
+			if (Net_IPv6::checkIPv6(substr($host, 1, -1)))
+			{
+				$this->host = $host;
+				return true;
+			}
+			else
+			{
+				$this->host = null;
+				$this->valid = false;
+				return false;
+			}
+		}
+		else
+		{
+			$this->host = $this->replace_invalid_with_pct_encoding($host, self::reg_name);
+			return true;
 		}
 	}
 	
@@ -196,7 +245,7 @@ class IRI
 	 * @param string $path
 	 * @return bool
 	 */
-	private function set_path($path)
+	public function set_path($path)
 	{
 		if ($path === null || $path === '')
 		{
@@ -205,6 +254,8 @@ class IRI
 		}
 		elseif (substr($path, 0, 2) === '//' && $this->userinfo === null && $this->host === null && $this->port === null)
 		{
+			$this->path = null;
+			$this->valid = false;
 			return false;
 		}
 		$this->path = $this->replace_invalid_with_pct_encoding($path, self::path);

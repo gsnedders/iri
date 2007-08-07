@@ -68,6 +68,55 @@ class IRI
 	const uppercase = 4;
 	
 	/**
+	 * Scheme
+	 *
+	 * @var string
+	 */
+	private $scheme;
+	
+	/**
+	 * User Information
+	 *
+	 * @var string
+	 */
+	private $userinfo;
+	
+	/**
+	 * Host
+	 *
+	 * @var string
+	 */
+	private $host;
+	
+	/**
+	 * Port
+	 *
+	 * @var string
+	 */
+	private $port;
+	
+	/**
+	 * Path
+	 *
+	 * @var string
+	 */
+	private $path;
+	
+	/**
+	 * Query
+	 *
+	 * @var string
+	 */
+	private $query;
+	
+	/**
+	 * Fragment
+	 *
+	 * @var string
+	 */
+	private $fragment;
+	
+	/**
 	 * Whether the object represents a valid IRI
 	 *
 	 * @var array

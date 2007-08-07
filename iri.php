@@ -124,9 +124,20 @@ class IRI
 	private $valid = array();
 	
 	/**
+	 * Return the entire IRI when you try and read the object as a string
+	 *
+	 * @return string
+	 */
+	public function __toString()
+	{
+		return $this->get_iri();
+	}
+	
+	/**
 	 * Create a new IRI object, from a specified string
 	 *
 	 * @param string $iri
+	 * @return IRI
 	 */
 	public function __construct($iri)
 	{
@@ -136,6 +147,85 @@ class IRI
 		$this->set_path($parsed['path']);
 		$this->set_query($parsed['query']);
 		$this->set_fragment($parsed['fragment']);
+	}
+	
+	/**
+	 * Create a new IRI object by resolving a relative IRI
+	 *
+	 * @param IRI $base Base IRI
+	 * @param string $relative Relative IRI
+	 * @return IRI
+	 */
+	public static function absolutize(IRI $base, $relative)
+	{
+		$relative = (string) $relative;
+		if ($relative !== '')
+		{
+			$relative = new IRI($relative);
+			if ($relative->get_scheme() !== '')
+			{
+				$target = $relative;
+			}
+			elseif ($base->get_iri() !== '')
+			{
+				if ($relative->get_authority() !== '')
+				{
+					$target = $relative;
+					$target->set_scheme($base->get_scheme());
+				}
+				else
+				{
+					$target = new IRI('');
+					$target->set_scheme($base->get_scheme());
+					$target->set_userinfo($base->get_userinfo());
+					$target->set_host($base->get_host());
+					$target->set_port($base->get_port());
+					if ($relative->get_path() !== '')
+					{
+						if (strpos($relative->get_path(), '/') === 0)
+						{
+							$target->set_path($relative->get_path());
+						}
+						elseif (($base->get_userinfo() !== '' || $base->get_host() !== '' || $base->get_port() !== '') && $base->get_path() === '')
+						{
+							$target->set_path('/' . $relative->get_path());
+						}
+						elseif (($last_segment = strrpos($base->get_path(), '/')) !== false)
+						{
+							$target->set_path(substr($base->get_path(), 0, $last_segment + 1) . $relative->get_path());
+						}
+						else
+						{
+							$target->set_path($relative->get_path());
+						}
+						$target->set_query($relative->get_query());
+					}
+					else
+					{
+						$target->set_path($base->get_path());
+						if ($relative->get_query() !== '')
+						{
+							$target->set_query($relative->get_query());
+						}
+						elseif ($base->get_query() !== '')
+						{
+							$target->set_query($base->get_query());
+						}
+					}
+				}
+				$target->set_fragment($relative->get_fragment());
+			}
+			else
+			{
+				// No base URL, just return the relative URL
+				$target = $relative;
+			}
+		}
+		else
+		{
+			$target = $base;
+		}
+		return $target;
 	}
 	
 	/**
@@ -527,6 +617,146 @@ class IRI
 		}
 		$this->valid[__FUNCTION__] = true;
 		return true;
+	}
+	
+	/**
+	 * Get the complete IRI
+	 *
+	 * @return string
+	 */
+	public function get_iri()
+	{
+		$iri = '';
+		if ($this->scheme !== null)
+		{
+			$iri .= $this->scheme . ':';
+		}
+		if (($authority = $this->get_authority()) !== null)
+		{
+			$iri .= '//' . $authority;
+		}
+		if ($this->path !== null)
+		{
+			$iri .= $this->path;
+		}
+		if ($this->query !== null)
+		{
+			$iri .= '?' . $this->query;
+		}
+		if ($this->fragment !== null)
+		{
+			$iri .= '#' . $this->fragment;
+		}
+		
+		if ($iri !== '')
+		{
+			return $iri;
+		}
+		else
+		{
+			return null;
+		}
+	}
+	
+	/**
+	 * Get the scheme
+	 *
+	 * @return string
+	 */
+	public function get_scheme()
+	{
+		return $this->scheme;
+	}
+	
+	/**
+	 * Get the complete authority
+	 *
+	 * @return string
+	 */
+	public function get_authority()
+	{
+		$authority = '';
+		if ($this->userinfo !== null)
+		{
+			$authority .= $this->userinfo . '@';
+		}
+		if ($this->host !== null)
+		{
+			$authority .= $this->host;
+		}
+		if ($this->port !== null)
+		{
+			$authority .= ':' . $this->port;
+		}
+		
+		if ($authority !== '')
+		{
+			return $authority;
+		}
+		else
+		{
+			return null;
+		}
+	}
+	
+	/**
+	 * Get the user information
+	 *
+	 * @return string
+	 */
+	public function get_userinfo()
+	{
+		return $this->userinfo;
+	}
+	
+	/**
+	 * Get the host
+	 *
+	 * @return string
+	 */
+	public function get_host()
+	{
+		return $this->host;
+	}
+	
+	/**
+	 * Get the port
+	 *
+	 * @return string
+	 */
+	public function get_port()
+	{
+		return $this->port;
+	}
+	
+	/**
+	 * Get the path
+	 *
+	 * @return string
+	 */
+	public function get_path()
+	{
+		return $this->path;
+	}
+	
+	/**
+	 * Get the query
+	 *
+	 * @return string
+	 */
+	public function get_query()
+	{
+		return $this->query;
+	}
+	
+	/**
+	 * Get the fragment
+	 *
+	 * @return string
+	 */
+	public function get_fragment()
+	{
+		return $this->fragment;
 	}
 }
 

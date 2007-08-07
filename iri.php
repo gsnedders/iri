@@ -38,6 +38,11 @@ class IRI
 	const path = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=@/';
 	
 	/**
+	 * Valid characters for the query/fragment (minus pct-encoded)
+	 */
+	const query_and_fragment = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:@/?';
+	
+	/**
 	 * Valid characters for DIGIT
 	 */
 	const digit = '0123456789';
@@ -65,9 +70,9 @@ class IRI
 	/**
 	 * Whether the object represents a valid IRI
 	 *
-	 * @var bool
+	 * @var array
 	 */
-	private $valid = true;
+	private $valid = array();
 	
 	/**
 	 * Create a new IRI object, from a specified string
@@ -191,6 +196,16 @@ class IRI
 	}
 	
 	/**
+	 * Check if the object represents a valid IRI
+	 *
+	 * @return bool
+	 */
+	public function is_valid()
+	{
+		return array_sum($this->valid) === count($this->valid);
+	}
+	
+	/**
 	 * Set the scheme. Returns true on success, false on failure (if there are
 	 * any invalid characters).
 	 *
@@ -206,7 +221,7 @@ class IRI
 				if (!strspn($scheme, self::scheme, 1))
 				{
 					$this->scheme = null;
-					$this->valid = false;
+					$this->valid[__FUNCTION__] = false;
 					return false;
 				}
 			
@@ -214,11 +229,12 @@ class IRI
 				if (!strspn($scheme, self::scheme_first_char, 0, 1))
 				{
 					$this->scheme = null;
-					$this->valid = false;
+					$this->valid[__FUNCTION__] = false;
 					return false;
 				}
 		}
 		$this->scheme = strtolower($scheme);
+		$this->valid[__FUNCTION__] = true;
 		return true;
 	}
 	
@@ -231,6 +247,7 @@ class IRI
 	public function set_userinfo($userinfo)
 	{
 		$this->userinfo = $this->replace_invalid_with_pct_encoding($userinfo, self::userinfo);
+		$this->valid[__FUNCTION__] = true;
 		return true;
 	}
 	
@@ -246,17 +263,19 @@ class IRI
 		if ($port === null || $port === '')
 		{
 			$this->port = null;
+			$this->valid[__FUNCTION__] = true;
 			return true;
 		}
 		elseif (strspn($port, self::digit) === strlen($port))
 		{
 			$this->port = (int) $port;
+			$this->valid[__FUNCTION__] = true;
 			return true;
 		}
 		else
 		{
 			$this->port = null;
-			$this->valid = false;
+			$this->valid[__FUNCTION__] = false;
 			return false;
 		}
 	}
@@ -273,6 +292,7 @@ class IRI
 		if ($host === null || $host === '')
 		{
 			$this->host = null;
+			$this->valid[__FUNCTION__] = true;
 			return true;
 		}
 		elseif ($host[0] === '[' && substr($host, -1) === ']')
@@ -280,18 +300,20 @@ class IRI
 			if (Net_IPv6::checkIPv6(substr($host, 1, -1)))
 			{
 				$this->host = $host;
+				$this->valid[__FUNCTION__] = true;
 				return true;
 			}
 			else
 			{
 				$this->host = null;
-				$this->valid = false;
+				$this->valid[__FUNCTION__] = false;
 				return false;
 			}
 		}
 		else
 		{
 			$this->host = $this->replace_invalid_with_pct_encoding($host, self::reg_name, self::lowercase);
+			$this->valid[__FUNCTION__] = true;
 			return true;
 		}
 	}
@@ -307,15 +329,60 @@ class IRI
 		if ($path === null || $path === '')
 		{
 			$this->path = null;
+			$this->valid[__FUNCTION__] = true;
 			return true;
 		}
 		elseif (substr($path, 0, 2) === '//' && $this->userinfo === null && $this->host === null && $this->port === null)
 		{
 			$this->path = null;
-			$this->valid = false;
+			$this->valid[__FUNCTION__] = false;
 			return false;
 		}
-		$this->path = $this->replace_invalid_with_pct_encoding($path, self::path);
+		else
+		{
+			$this->path = $this->replace_invalid_with_pct_encoding($path, self::path);
+			$this->valid[__FUNCTION__] = true;
+			return true;
+		}
+	}
+	
+	/**
+	 * Set the query.
+	 *
+	 * @param string $query
+	 * @return bool
+	 */
+	public function set_query($query)
+	{
+		if ($query === null || $query === '')
+		{
+			$this->query = null;
+		}
+		else
+		{
+			$this->query = $this->replace_invalid_with_pct_encoding($query, self::query_and_fragment);
+		}
+		$this->valid[__FUNCTION__] = true;
+		return true;
+	}
+	
+	/**
+	 * Set the fragment.
+	 *
+	 * @param string $fragment
+	 * @return bool
+	 */
+	public function set_fragment($fragment)
+	{
+		if ($fragment === null || $fragment === '')
+		{
+			$this->fragment = null;
+		}
+		else
+		{
+			$this->fragment = $this->replace_invalid_with_pct_encoding($fragment, self::query_and_fragment);
+		}
+		$this->valid[__FUNCTION__] = true;
 		return true;
 	}
 }

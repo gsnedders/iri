@@ -132,9 +132,7 @@ class IRI
 	{
 		$parsed = $this->parse_iri((string) $iri);
 		$this->set_scheme($parsed['scheme']);
-		$this->set_userinfo($parsed['userinfo']);
-		$this->set_host($parsed['host']);
-		$this->set_port($parsed['port']);
+		$this->set_authority($parsed['authority']);
 		$this->set_path($parsed['path']);
 		$this->set_query($parsed['query']);
 		$this->set_fragment($parsed['fragment']);
@@ -153,17 +151,17 @@ class IRI
 		{
 			return $cache[$iri];
 		}
-		elseif (preg_match('/^(([^:\/?#]+):)?(\/\/(([^\/?#@]*)@)?([^\/?#]*)(:([0-9]*))?)?([^?#]*)(\?([^#]*))?(#(.*))?$/', $iri, $match))
+		elseif (preg_match('/^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/', $iri, $match))
 		{
-			for ($i = count($match); $i <= 13; $i++)
+			for ($i = count($match); $i <= 9; $i++)
 			{
 				$match[$i] = '';
 			}
-			return $cache[$iri] = array('scheme' => $match[2], 'userinfo' => $match[5], 'host' => $match[6], 'port' => $match[8], 'path' => $match[9], 'query' => $match[11], 'fragment' => $match[13]);
+			return $cache[$iri] = array('scheme' => $match[2], 'authority' => $match[4], 'path' => $match[5], 'query' => $match[7], 'fragment' => $match[9]);
 		}
 		else
 		{
-			return $cache[$iri] = array('scheme' => '', 'userinfo' => '', 'host' => '', 'port' => '', 'path' => '', 'query' => '', 'fragment' => '');
+			return $cache[$iri] = array('scheme' => '', 'authority' => '', 'path' => '', 'query' => '', 'fragment' => '');
 		}
 	}
 
@@ -242,7 +240,7 @@ class IRI
 		{
 			$string = strtolower($string);
 		}
-		elseif ($case & self::upppercase)
+		elseif ($case & self::uppercase)
 		{
 			$string = strtoupper($string);
 		}
@@ -270,7 +268,7 @@ class IRI
 						{
 							$chr = strtolower($chr);
 						}
-						elseif ($case & self::upppercase)
+						elseif ($case & self::uppercase)
 						{
 							$chr = strtoupper($chr);
 						}
@@ -297,7 +295,7 @@ class IRI
 			// If we have an invalid character, change into its pct-encoded form
 			else
 			{
-				$string = str_replace($string[$position], strtoupper(dechex(ord($string[$position]))), $string, $count);
+				$string = str_replace($string[$position], '%' . strtoupper(dechex(ord($string[$position]))), $string, $count);
 				$strlen += 2 * $count;
 			}
 		}
@@ -345,6 +343,38 @@ class IRI
 		$this->scheme = strtolower($scheme);
 		$this->valid[__FUNCTION__] = true;
 		return true;
+	}
+	
+	/**
+	 * Set the authority. Returns true on success, false on failure (if there are
+	 * any invalid characters).
+	 *
+	 * @param string $authority
+	 * @return bool
+	 */
+	public function set_authority($authority)
+	{
+		if (($userinfo_end = strrpos($authority, '@')) !== false)
+		{
+			$userinfo = substr($authority, 0, $userinfo_end);
+			$authority = substr($authority, $userinfo_end + 1);
+		}
+		else
+		{
+			$userinfo = null;
+		}
+		
+		if (($port_start = strpos($authority, ':')) !== false)
+		{
+			$port = substr($authority, $port_start + 1);
+			$authority = substr($authority, 0, $port_start);
+		}
+		else
+		{
+			$port = null;
+		}
+		
+		return $this->set_userinfo($userinfo) && $this->set_host($authority) && $this->set_port($port);
 	}
 	
 	/**
@@ -499,3 +529,5 @@ class IRI
 		return true;
 	}
 }
+
+?>

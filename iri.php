@@ -13,46 +13,6 @@ require_once 'Net_IPv6/IPv6.php';
 class IRI
 {
 	/**
-	 * Valid characters for the first character of the scheme
-	 */
-	const scheme_first_char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-	
-	/**
-	 * Valid characters for the scheme
-	 */
-	const scheme = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-.';
-	
-	/**
-	 * Valid characters for the userinfo (minus pct-encoded)
-	 */
-	const userinfo = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:';
-	
-	/**
-	 * Valid characters for the reg-name (minus pct-encoded)
-	 */
-	const reg_name = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=';
-	
-	/**
-	 * Valid characters for the path (minus pct-encoded and colon)
-	 */
-	const path = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=@/';
-	
-	/**
-	 * Valid characters for the query/fragment (minus pct-encoded)
-	 */
-	const query_and_fragment = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:@/?';
-	
-	/**
-	 * Valid characters for DIGIT
-	 */
-	const digit = '0123456789';
-	
-	/**
-	 * Valid characters for HEXDIGIT
-	 */
-	const hexdigit = '0123456789ABCDEFabcdef';
-	
-	/**
 	 * Don't change case
 	 */
 	const same_case = 1;
@@ -346,7 +306,7 @@ class IRI
 			if ($string[$position] === '%')
 			{
 				// If we have a pct-encoded section
-				if ($position + 2 < $strlen && strspn($string, self::hexdigit, $position + 1, 2))
+				if ($position + 2 < $strlen && strspn($string, '0123456789ABCDEFabcdef', $position + 1, 2))
 				{
 					// Get the the represented character
 					$chr = chr(hexdec(substr($string, $position + 1, 2)));
@@ -421,7 +381,7 @@ class IRI
 			switch (true)
 			{
 				case $len > 1:
-					if (!strspn($scheme, self::scheme, 1))
+					if (!strspn($scheme, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-.', 1))
 					{
 						$this->scheme = null;
 						$this->valid[__FUNCTION__] = false;
@@ -429,7 +389,7 @@ class IRI
 					}
 				
 				case $len > 0:
-					if (!strspn($scheme, self::scheme_first_char, 0, 1))
+					if (!strspn($scheme, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 0, 1))
 					{
 						$this->scheme = null;
 						$this->valid[__FUNCTION__] = false;
@@ -488,7 +448,7 @@ class IRI
 		}
 		else
 		{
-			$this->userinfo = $this->replace_invalid_with_pct_encoding($userinfo, self::userinfo);
+			$this->userinfo = $this->replace_invalid_with_pct_encoding($userinfo, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:');
 		}
 		$this->valid[__FUNCTION__] = true;
 		return true;
@@ -526,7 +486,7 @@ class IRI
 		}
 		else
 		{
-			$this->host = $this->replace_invalid_with_pct_encoding($host, self::reg_name, self::lowercase);
+			$this->host = $this->replace_invalid_with_pct_encoding($host, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=', self::lowercase);
 			$this->valid[__FUNCTION__] = true;
 			return true;
 		}
@@ -547,7 +507,7 @@ class IRI
 			$this->valid[__FUNCTION__] = true;
 			return true;
 		}
-		elseif (strspn($port, self::digit) === strlen($port))
+		elseif (strspn($port, '0123456789') === strlen($port))
 		{
 			$this->port = (int) $port;
 			$this->valid[__FUNCTION__] = true;
@@ -583,7 +543,7 @@ class IRI
 		}
 		else
 		{
-			$this->path = $this->replace_invalid_with_pct_encoding($path, self::path);
+			$this->path = $this->replace_invalid_with_pct_encoding($path, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=@/');
 			if ($this->scheme !== null)
 			{
 				$this->path = $this->remove_dot_segments($this->path);
@@ -607,7 +567,7 @@ class IRI
 		}
 		else
 		{
-			$this->query = $this->replace_invalid_with_pct_encoding($query, self::query_and_fragment);
+			$this->query = $this->replace_invalid_with_pct_encoding($query, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:@/?');
 		}
 		$this->valid[__FUNCTION__] = true;
 		return true;
@@ -627,7 +587,7 @@ class IRI
 		}
 		else
 		{
-			$this->fragment = $this->replace_invalid_with_pct_encoding($fragment, self::query_and_fragment);
+			$this->fragment = $this->replace_invalid_with_pct_encoding($fragment, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:@/?');
 		}
 		$this->valid[__FUNCTION__] = true;
 		return true;

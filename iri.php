@@ -189,7 +189,7 @@ class IRI
 	}
 	
 	/**
-	 * Parse an IRI into scheme/authority.path/query/fragment segments
+	 * Parse an IRI into scheme/authority/path/query/fragment segments
 	 *
 	 * @param string $iri
 	 * @return array

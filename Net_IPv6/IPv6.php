@@ -161,7 +161,6 @@ class Net_IPv6
 	 */
 	function SplitV64($ip)
 	{
-		$ip = Net_IPv6::removeNetmaskSpec($ip);
 		$ip = Net_IPv6::Uncompress($ip);
 		if (strstr($ip, '.'))
 		{
@@ -188,7 +187,6 @@ class Net_IPv6
 	 */
 	function checkIPv6($ip)
 	{
-		$ip = Net_IPv6::removeNetmaskSpec($ip);
 		$ipPart = Net_IPv6::SplitV64($ip);
 		$count = 0;
 		if (!empty($ipPart[0]))

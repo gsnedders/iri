@@ -1,7 +1,5 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
-
 /**
  * This file contains the implementation of the Net_IPv6 class
  *
@@ -38,7 +36,7 @@
 class Net_IPv6
 {
 	/**
-	 * Removes a possible existing netmask specification at an IP addresse.
+	 * Removes a possible existing netmask specification of an IP address.
 	 *
 	 * @param String $ip the (compressed) IP as Hex representation
 	 * @return String the IP without netmask length
@@ -60,10 +58,10 @@ class Net_IPv6
 	}
 
 	/**
-	 * Uncompresses an IPv6 adress
+	 * Uncompresses an IPv6 address
 	 *
-	 * RFC 2373 allows you to compress zeros in an adress to '::'. This
-	 * function expects an valid IPv6 adress and expands the '::' to
+	 * RFC 2373 allows you to compress zeros in an address to '::'. This
+	 * function expects an valid IPv6 address and expands the '::' to
 	 * the required zeros.
 	 *
 	 * Example:	 FF01::101	->  FF01:0:0:0:0:0:0:101
@@ -72,8 +70,8 @@ class Net_IPv6
 	 * @access public
 	 * @see Compress()
 	 * @static
-	 * @param string $ip	a valid IPv6-adress (hex format)
-	 * @return string	the uncompressed IPv6-adress (hex format)
+	 * @param string $ip	a valid IPv6-address (hex format)
+	 * @return string	the uncompressed IPv6-address (hex format)
 	 */
 	function Uncompress($ip)
 	{
@@ -148,17 +146,17 @@ class Net_IPv6
 	}
 
 	/**
-	 * Splits an IPv6 adress into the IPv6 and a possible IPv4 part
+	 * Splits an IPv6 address into the IPv6 and a possible IPv4 part
 	 *
-	 * RFC 2373 allows you to note the last two parts of an IPv6 adress as
-	 * an IPv4 compatible adress
+	 * RFC 2373 allows you to note the last two parts of an IPv6 address as
+	 * an IPv4 compatible address
 	 *
 	 * Example:	 0:0:0:0:0:0:13.1.68.3
 	 *			 0:0:0:0:0:FFFF:129.144.52.38
 	 *
 	 * @access public
 	 * @static
-	 * @param string $ip	a valid IPv6-adress (hex format)
+	 * @param string $ip	a valid IPv6-address (hex format)
 	 * @return array		[0] contains the IPv6 part, [1] the IPv4 part (hex format)
 	 */
 	function SplitV64($ip)
@@ -179,14 +177,14 @@ class Net_IPv6
 	}
 
 	/**
-	 * Checks an IPv6 adress
+	 * Checks an IPv6 address
 	 *
 	 * Checks if the given IP is IPv6-compatible
 	 *
 	 * @access public
 	 * @static
-	 * @param string $ip	a valid IPv6-adress
-	 * @return boolean	true if $ip is an IPv6 adress
+	 * @param string $ip	a valid IPv6-address
+	 * @return boolean	true if $ip is an IPv6 address
 	 */
 	function checkIPv6($ip)
 	{

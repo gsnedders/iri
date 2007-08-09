@@ -38,8 +38,8 @@ class Net_IPv6
 	/**
 	 * Removes a possible existing netmask specification of an IP address.
 	 *
-	 * @param String $ip the (compressed) IP as Hex representation
-	 * @return String the IP without netmask length
+	 * @param string $ip the (compressed) IP as Hex representation
+	 * @return string the IP the without netmask
 	 * @since 1.1.0
 	 * @access public
 	 * @static
@@ -68,10 +68,9 @@ class Net_IPv6
 	 *			 ::1		->	0:0:0:0:0:0:0:1
 	 *
 	 * @access public
-	 * @see Compress()
 	 * @static
-	 * @param string $ip	a valid IPv6-address (hex format)
-	 * @return string	the uncompressed IPv6-address (hex format)
+	 * @param string $ip a valid IPv6-address (hex format)
+	 * @return string the uncompressed IPv6-address (hex format)
 	 */
 	function Uncompress($ip)
 	{
@@ -156,8 +155,8 @@ class Net_IPv6
 	 *
 	 * @access public
 	 * @static
-	 * @param string $ip	a valid IPv6-address (hex format)
-	 * @return array		[0] contains the IPv6 part, [1] the IPv4 part (hex format)
+	 * @param string $ip a valid IPv6-address (hex format)
+	 * @return array [0] contains the IPv6 part, [1] the IPv4 part (hex format)
 	 */
 	function SplitV64($ip)
 	{
@@ -182,8 +181,8 @@ class Net_IPv6
 	 *
 	 * @access public
 	 * @static
-	 * @param string $ip	a valid IPv6-address
-	 * @return boolean	true if $ip is an IPv6 address
+	 * @param string $ip a valid IPv6-address
+	 * @return bool true if $ip is an IPv6 address
 	 */
 	function checkIPv6($ip)
 	{

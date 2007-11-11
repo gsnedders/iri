@@ -94,12 +94,86 @@ class IRI
 	}
 	
 	/**
+	 * Overload __set() to provide access via properties
+	 *
+	 * @param string $name Property name
+	 * @param mixed $value Property value
+	 * @return void
+	 */
+	public function __set($name, $value)
+	{
+		if (method_exists($this, 'set_' . $name))
+		{
+			return call_user_func(array($this, 'set_' . $name), $value);
+		}
+		else
+		{
+			return parent::__set($name);
+		}
+	}
+	
+	/**
+	 * Overload __get() to provide access via properties
+	 *
+	 * @param string $name Property name
+	 * @return mixed
+	 */
+	public function __get($name)
+	{
+		if (method_exists($this, 'get_' . $name))
+		{
+			return call_user_func(array($this, 'get_' . $name));
+		}
+		else
+		{
+			return parent::__get($name);
+		}
+	}
+	
+	/**
+	 * Overload __isset() to provide access via properties
+	 *
+	 * @param string $name Property name
+	 * @return bool
+	 */
+	public function __isset($name)
+	{
+		if (method_exists($this, 'get_' . $name))
+		{
+			return true;
+		}
+		else
+		{
+			return parent::__isset($name);
+		}
+	}
+	
+	/**
+	 * Overload __unset() to provide access via properties
+	 *
+	 * @param string $name Property name
+	 * @param mixed $value Property value
+	 * @return void
+	 */
+	public function __unset($name)
+	{
+		if (method_exists($this, 'set_' . $name))
+		{
+			call_user_func(array($this, 'set_' . $name), '');
+		}
+		else
+		{
+			parent::__unset($name);
+		}
+	}
+	
+	/**
 	 * Create a new IRI object, from a specified string
 	 *
 	 * @param string $iri
 	 * @return IRI
 	 */
-	public function __construct($iri)
+	public function __construct($iri = '')
 	{
 		$parsed = $this->parse_iri((string) $iri);
 		$this->set_scheme($parsed['scheme']);

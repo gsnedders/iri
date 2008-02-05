@@ -380,7 +380,7 @@ class IRI
 			if ($string[$position] === '%')
 			{
 				// If we have a pct-encoded section
-				if ($position + 2 < $strlen && strspn($string, '0123456789ABCDEFabcdef', $position + 1, 2))
+				if ($position + 2 < $strlen && strspn($string, '0123456789ABCDEFabcdef', $position + 1, 2) === 2)
 				{
 					// Get the the represented character
 					$chr = chr(hexdec(substr($string, $position + 1, 2)));
@@ -419,7 +419,7 @@ class IRI
 			// If we have an invalid character, change into its pct-encoded form
 			else
 			{
-				$string = str_replace($string[$position], '%' . strtoupper(dechex(ord($string[$position]))), $string, $count);
+				$string = str_replace($string[$position], '%' . sprintf('%%%02X', ord($string[$position])), $string, $count);
 				$strlen += 2 * $count;
 			}
 		}

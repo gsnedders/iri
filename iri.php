@@ -1,14 +1,43 @@
 <?php
 
 /**
- * IPv6 tools, inc. validator
- */
-require_once 'Net_IPv6/IPv6.php';
-
-/**
- * IRI parser/serialiser
+ * IRI parser/serialiser/normaliser
+ *
+ * Copyright (c) 2007-2008, Geoffrey Sneddon and Steve Minutillo.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 	* Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ * 	* Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * 	* Neither the name of the SimplePie Team nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS AND CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *
  * @package IRI
+ * @author Geoffrey Sneddon
+ * @author Steve Minutillo
+ * @copyright 2007-2008 Geoffrey Sneddon and Steve Minutillo
+ * @license http://www.opensource.org/licenses/bsd-license.php
+ * @link http://hg.gsnedders.com/iri/
  */
 class IRI
 {
@@ -16,73 +45,73 @@ class IRI
 	 * Don't change case
 	 */
 	const same_case = 1;
-	
+
 	/**
 	 * Change to lowercase
 	 */
 	const lowercase = 2;
-	
+
 	/**
 	 * Change to uppercase
 	 */
 	const uppercase = 4;
-	
+
 	/**
 	 * Scheme
 	 *
 	 * @var string
 	 */
 	private $scheme;
-	
+
 	/**
 	 * User Information
 	 *
 	 * @var string
 	 */
 	private $userinfo;
-	
+
 	/**
 	 * Host
 	 *
 	 * @var string
 	 */
 	private $host;
-	
+
 	/**
 	 * Port
 	 *
 	 * @var string
 	 */
 	private $port;
-	
+
 	/**
 	 * Path
 	 *
 	 * @var string
 	 */
 	private $path;
-	
+
 	/**
 	 * Query
 	 *
 	 * @var string
 	 */
 	private $query;
-	
+
 	/**
 	 * Fragment
 	 *
 	 * @var string
 	 */
 	private $fragment;
-	
+
 	/**
 	 * Whether the object represents a valid IRI
 	 *
 	 * @var array
 	 */
 	private $valid = array();
-	
+
 	/**
 	 * Return the entire IRI when you try and read the object as a string
 	 *
@@ -92,7 +121,7 @@ class IRI
 	{
 		return $this->get_iri();
 	}
-	
+
 	/**
 	 * Overload __set() to provide access via properties
 	 *
@@ -111,7 +140,7 @@ class IRI
 			return parent::__set($name);
 		}
 	}
-	
+
 	/**
 	 * Overload __get() to provide access via properties
 	 *
@@ -129,7 +158,7 @@ class IRI
 			return parent::__get($name);
 		}
 	}
-	
+
 	/**
 	 * Overload __isset() to provide access via properties
 	 *
@@ -147,7 +176,7 @@ class IRI
 			return parent::__isset($name);
 		}
 	}
-	
+
 	/**
 	 * Overload __unset() to provide access via properties
 	 *
@@ -166,7 +195,7 @@ class IRI
 			parent::__unset($name);
 		}
 	}
-	
+
 	/**
 	 * Create a new IRI object, from a specified string
 	 *
@@ -182,7 +211,7 @@ class IRI
 		$this->set_query($parsed['query']);
 		$this->set_fragment($parsed['fragment']);
 	}
-	
+
 	/**
 	 * Create a new IRI object by resolving a relative IRI
 	 *
@@ -261,7 +290,7 @@ class IRI
 		}
 		return $target;
 	}
-	
+
 	/**
 	 * Parse an IRI into scheme/authority/path/query/fragment segments
 	 *
@@ -348,7 +377,7 @@ class IRI
 		}
 		return $output . $input;
 	}
-	
+
 	/**
 	 * Replace invalid character with percent encoding
 	 *
@@ -368,11 +397,11 @@ class IRI
 		{
 			$string = strtoupper($string);
 		}
-		
+
 		// Store position and string length (to avoid constantly recalculating this)
 		$position = 0;
 		$strlen = strlen($string);
-		
+
 		// Loop as long as we have invalid characters, advancing the position to the next invalid character
 		while (($position += strspn($string, $valid_chars, $position)) < $strlen)
 		{
@@ -384,7 +413,7 @@ class IRI
 				{
 					// Get the the represented character
 					$chr = chr(hexdec(substr($string, $position + 1, 2)));
-					
+
 					// If the character is valid, replace the pct-encoded with the actual character while normalising case
 					if (strpos($valid_chars, $chr) !== false)
 					{
@@ -400,7 +429,7 @@ class IRI
 						$strlen -= 2;
 						$position++;
 					}
-					
+
 					// Otherwise just normalise the pct-encoded to uppercase
 					else
 					{
@@ -425,7 +454,7 @@ class IRI
 		}
 		return $string;
 	}
-	
+
 	/**
 	 * Check if the object represents a valid IRI
 	 *
@@ -435,7 +464,7 @@ class IRI
 	{
 		return array_sum($this->valid) === count($this->valid);
 	}
-	
+
 	/**
 	 * Set the scheme. Returns true on success, false on failure (if there are
 	 * any invalid characters).
@@ -461,7 +490,7 @@ class IRI
 						$this->valid[__FUNCTION__] = false;
 						return false;
 					}
-				
+
 				case $len > 0:
 					if (!strspn($scheme, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 0, 1))
 					{
@@ -475,7 +504,7 @@ class IRI
 		$this->valid[__FUNCTION__] = true;
 		return true;
 	}
-	
+
 	/**
 	 * Set the authority. Returns true on success, false on failure (if there are
 	 * any invalid characters).
@@ -494,7 +523,7 @@ class IRI
 		{
 			$userinfo = null;
 		}
-		
+
 		if (($port_start = strpos($authority, ':')) !== false)
 		{
 			$port = substr($authority, $port_start + 1);
@@ -504,10 +533,10 @@ class IRI
 		{
 			$port = null;
 		}
-		
+
 		return $this->set_userinfo($userinfo) && $this->set_host($authority) && $this->set_port($port);
 	}
-	
+
 	/**
 	 * Set the userinfo.
 	 *
@@ -527,7 +556,7 @@ class IRI
 		$this->valid[__FUNCTION__] = true;
 		return true;
 	}
-	
+
 	/**
 	 * Set the host. Returns true on success, false on failure (if there are
 	 * any invalid characters).
@@ -565,7 +594,7 @@ class IRI
 			return true;
 		}
 	}
-	
+
 	/**
 	 * Set the port. Returns true on success, false on failure (if there are
 	 * any invalid characters).
@@ -594,7 +623,7 @@ class IRI
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Set the path.
 	 *
@@ -626,7 +655,7 @@ class IRI
 			return true;
 		}
 	}
-	
+
 	/**
 	 * Set the query.
 	 *
@@ -646,7 +675,7 @@ class IRI
 		$this->valid[__FUNCTION__] = true;
 		return true;
 	}
-	
+
 	/**
 	 * Set the fragment.
 	 *
@@ -666,7 +695,7 @@ class IRI
 		$this->valid[__FUNCTION__] = true;
 		return true;
 	}
-	
+
 	/**
 	 * Get the complete IRI
 	 *
@@ -695,7 +724,7 @@ class IRI
 		{
 			$iri .= '#' . $this->fragment;
 		}
-		
+
 		if ($iri !== '')
 		{
 			return $iri;
@@ -705,7 +734,7 @@ class IRI
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Get the scheme
 	 *
@@ -715,7 +744,7 @@ class IRI
 	{
 		return $this->scheme;
 	}
-	
+
 	/**
 	 * Get the complete authority
 	 *
@@ -736,7 +765,7 @@ class IRI
 		{
 			$authority .= ':' . $this->port;
 		}
-		
+
 		if ($authority !== '')
 		{
 			return $authority;
@@ -746,7 +775,7 @@ class IRI
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Get the user information
 	 *
@@ -756,7 +785,7 @@ class IRI
 	{
 		return $this->userinfo;
 	}
-	
+
 	/**
 	 * Get the host
 	 *
@@ -766,7 +795,7 @@ class IRI
 	{
 		return $this->host;
 	}
-	
+
 	/**
 	 * Get the port
 	 *
@@ -776,7 +805,7 @@ class IRI
 	{
 		return $this->port;
 	}
-	
+
 	/**
 	 * Get the path
 	 *
@@ -786,7 +815,7 @@ class IRI
 	{
 		return $this->path;
 	}
-	
+
 	/**
 	 * Get the query
 	 *
@@ -796,7 +825,7 @@ class IRI
 	{
 		return $this->query;
 	}
-	
+
 	/**
 	 * Get the fragment
 	 *
@@ -805,6 +834,212 @@ class IRI
 	public function get_fragment()
 	{
 		return $this->fragment;
+	}
+}
+
+/**
+ * Class to validate and to work with IPv6 addresses.
+ *
+ * @category Net
+ * @package Net_IPv6
+ * @author Alexander Merz <alexander.merz@web.de>
+ * @copyright 2003-2005 The PHP Group
+ * @license http://www.opensource.org/licenses/bsd-license.php
+ * @version CVS: $Id: IPv6.php,v 1.14 2006/02/09 15:13:06 alexmerz Exp $
+ * @link http://pear.php.net/package/Net_IPv6
+ * @author elfrink at introweb dot nl
+ * @author Josh Peck <jmp at joshpeck dot org>
+ * @author Geoffrey Sneddon
+ */
+class Net_IPv6
+{
+	/**
+	 * Removes a possible existing netmask specification of an IP address.
+	 *
+	 * @param string $ip the (compressed) IP as Hex representation
+	 * @return string the IP the without netmask
+	 * @since 1.1.0
+	 */
+	public static function removeNetmaskSpec($ip)
+	{
+		if (strpos($ip, '/') !== false)
+		{
+			list($addr, $nm) = explode('/', $ip);
+		}
+		else
+		{
+			$addr = $ip;				
+		}
+		return $addr;
+	}
+
+	/**
+	 * Uncompresses an IPv6 address
+	 *
+	 * RFC 2373 allows you to compress zeros in an address to '::'. This
+	 * function expects an valid IPv6 address and expands the '::' to
+	 * the required zeros.
+	 *
+	 * Example:	 FF01::101	->  FF01:0:0:0:0:0:0:101
+	 *			 ::1		->	0:0:0:0:0:0:0:1
+	 *
+	 * @param string $ip a valid IPv6-address (hex format)
+	 * @return string the uncompressed IPv6-address (hex format)
+	 */
+	public static function Uncompress($ip)
+	{
+		$uip = Net_IPv6::removeNetmaskSpec($ip);
+		$c1 = -1;
+		$c2 = -1;
+		if (strpos($ip, '::') !== false)
+		{
+			list($ip1, $ip2) = explode('::', $ip);
+			if ($ip1 === '')
+			{
+				$c1 = -1;
+			}
+			else
+			{
+			   	$pos = 0;
+				if (($pos = substr_count($ip1, ':')) > 0)
+				{
+					$c1 = $pos;
+				}
+				else
+				{
+					$c1 = 0;
+				}
+			}
+			if ($ip2 === '')
+			{
+				$c2 = -1;
+			}
+			else
+			{
+				$pos = 0;
+				if (($pos = substr_count($ip2, ':')) > 0)
+				{
+					$c2 = $pos;
+				}
+				else
+				{
+					$c2 = 0;
+				}
+			}
+			if (strstr($ip2, '.'))
+			{
+				$c2++;
+			}
+			// ::
+			if ($c1 === -1 && $c2 === -1)
+			{
+				$uip = '0:0:0:0:0:0:0:0';
+			}
+			// ::xxx
+			else if ($c1 === -1)
+			{
+				$fill = str_repeat('0:', 7 - $c2);
+				$uip =	str_replace('::', $fill, $uip);
+			}
+			// xxx::
+			else if ($c2 === -1)
+			{
+				$fill = str_repeat(':0', 7 - $c1);
+				$uip =	str_replace('::', $fill, $uip);
+			}
+			// xxx::xxx
+			else
+			{
+				$fill = str_repeat(':0:', 6 - $c2 - $c1);
+				$uip =	str_replace('::', $fill, $uip);
+				$uip =	str_replace('::', ':', $uip);
+			}
+		}
+		return $uip;
+	}
+
+	/**
+	 * Splits an IPv6 address into the IPv6 and a possible IPv4 part
+	 *
+	 * RFC 2373 allows you to note the last two parts of an IPv6 address as
+	 * an IPv4 compatible address
+	 *
+	 * Example:	 0:0:0:0:0:0:13.1.68.3
+	 *			 0:0:0:0:0:FFFF:129.144.52.38
+	 *
+	 * @param string $ip a valid IPv6-address (hex format)
+	 * @return array [0] contains the IPv6 part, [1] the IPv4 part (hex format)
+	 */
+	public static function SplitV64($ip)
+	{
+		$ip = Net_IPv6::Uncompress($ip);
+		if (strstr($ip, '.'))
+		{
+			$pos = strrpos($ip, ':');
+			$ip[$pos] = '_';
+			$ipPart = explode('_', $ip);
+			return $ipPart;
+		}
+		else
+		{
+			return array($ip, '');
+		}
+	}
+
+	/**
+	 * Checks an IPv6 address
+	 *
+	 * Checks if the given IP is IPv6-compatible
+	 *
+	 * @param string $ip a valid IPv6-address
+	 * @return bool true if $ip is an IPv6 address
+	 */
+	public static function checkIPv6($ip)
+	{
+		$ipPart = Net_IPv6::SplitV64($ip);
+		$count = 0;
+		if (!empty($ipPart[0]))
+		{
+			$ipv6 = explode(':', $ipPart[0]);
+			for ($i = 0; $i < count($ipv6); $i++)
+			{
+				$dec = hexdec($ipv6[$i]);
+				$hex = strtoupper(preg_replace('/^[0]{1,3}(.*[0-9a-fA-F])$/', '\\1', $ipv6[$i]));
+				if ($ipv6[$i] >= 0 && $dec <= 65535 && $hex === strtoupper(dechex($dec)))
+				{
+					$count++;
+				}
+			}
+			if ($count === 8)
+			{
+				return true;
+			}
+			elseif ($count === 6 && !empty($ipPart[1]))
+			{
+				$ipv4 = explode('.', $ipPart[1]);
+				$count = 0;
+				foreach ($ipv4 as $ipv4_part)
+				{
+					if ($ipv4_part >= 0 && $ipv4_part <= 255 && preg_match('/^\d{1,3}$/', $ipv4_part))
+					{
+						$count++;
+					}
+				}
+				if ($count === 4)
+				{
+					return true;
+				}
+			}
+			else
+			{
+				return false;
+			}
+
+		}
+		else
+		{
+			return false;
+		}
 	}
 }
 

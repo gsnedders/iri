@@ -10,15 +10,15 @@
  * modification, are permitted provided that the following conditions are met:
  *
  * 	* Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
+ *		 this list of conditions and the following disclaimer.
  *
  * 	* Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
+ *		 this list of conditions and the following disclaimer in the documentation
+ *		 and/or other materials provided with the distribution.
  *
  * 	* Neither the name of the SimplePie Team nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ *		 may be used to endorse or promote products derived from this software
+ *		 without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -38,6 +38,8 @@
  * @copyright 2007-2008 Geoffrey Sneddon and Steve Minutillo
  * @license http://www.opensource.org/licenses/bsd-license.php
  * @link http://hg.gsnedders.com/iri/
+ *
+ * @todo Per-scheme validation
  */
 class IRI
 {
@@ -454,6 +456,50 @@ class IRI
 		}
 		return $string;
 	}
+	
+	/**
+	 * Do normalisation of the current IRI
+	 *
+	 * @todo Normalisation of dict scheme (cannot do this fully per spec without AI)
+	 */
+	private function normalise()
+	{
+		switch ($this->scheme)
+		{
+			case 'http':
+			case 'https':
+				if ($this->port === null)
+				{
+					$this->port = 80;
+				}
+				if ($this->path === null)
+				{
+					$this->path = '/';
+				}
+				break;
+			
+			case 'acap':
+				if ($this->port === null)
+				{
+					$this->port = 674;
+				}
+				break;
+				
+			case 'dict':
+				if ($this->port === null)
+				{
+					$this->port = 2628;
+				}
+				break;
+			
+			case 'file':
+				if ($this->host === null)
+				{
+					$this->host = 'localhost';
+				}
+				break;
+		}
+	}
 
 	/**
 	 * Check if the object represents a valid IRI
@@ -845,7 +891,7 @@ class IRI
  * @author Alexander Merz <alexander.merz@web.de>
  * @copyright 2003-2005 The PHP Group
  * @license http://www.opensource.org/licenses/bsd-license.php
- * @version CVS: $Id: IPv6.php,v 1.14 2006/02/09 15:13:06 alexmerz Exp $
+ * @version CVS: $Id: IPv6.php,v 1.15 2007/11/16 00:22:28 alexmerz Exp $
  * @link http://pear.php.net/package/Net_IPv6
  * @author elfrink at introweb dot nl
  * @author Josh Peck <jmp at joshpeck dot org>
@@ -862,7 +908,7 @@ class Net_IPv6
 	 */
 	public static function removeNetmaskSpec($ip)
 	{
-		if (strpos($ip, '/') !== false)
+		if (substr_count($ip, '/') === 1)
 		{
 			list($addr, $nm) = explode('/', $ip);
 		}
@@ -872,6 +918,26 @@ class Net_IPv6
 		}
 		return $addr;
 	}
+	
+	/**
+	 * Returns a possible existing netmask specification at an IP addresse.
+	 *
+	 * @param String $ip the (compressed) IP as Hex representation
+	 * @return String the netmask spec
+	 * @since 1.1.0
+	 */
+	public static function getNetmaskSpec($ip)
+	{
+		if (substr_count($ip, '/') === 1)
+		{
+			list($addr, $nm) = explode('/', $ip);
+		}
+		else
+		{
+			$nm = '';				
+		}
+		return $nm;
+	}
 
 	/**
 	 * Uncompresses an IPv6 address
@@ -880,7 +946,7 @@ class Net_IPv6
 	 * function expects an valid IPv6 address and expands the '::' to
 	 * the required zeros.
 	 *
-	 * Example:	 FF01::101	->  FF01:0:0:0:0:0:0:101
+	 * Example:	 FF01::101	->	FF01:0:0:0:0:0:0:101
 	 *			 ::1		->	0:0:0:0:0:0:0:1
 	 *
 	 * @param string $ip a valid IPv6-address (hex format)
@@ -888,19 +954,20 @@ class Net_IPv6
 	 */
 	public static function Uncompress($ip)
 	{
+		$netmask = Net_IPv6::getNetmaskSpec($ip);
 		$uip = Net_IPv6::removeNetmaskSpec($ip);
 		$c1 = -1;
 		$c2 = -1;
-		if (strpos($ip, '::') !== false)
+		if (strpos($uip, '::') !== false)
 		{
-			list($ip1, $ip2) = explode('::', $ip);
+			list($ip1, $ip2) = explode('::', $uip);
 			if ($ip1 === '')
 			{
 				$c1 = -1;
 			}
 			else
 			{
-			   	$pos = 0;
+				$pos = 0;
 				if (($pos = substr_count($ip1, ':')) > 0)
 				{
 					$c1 = $pos;
@@ -955,7 +1022,56 @@ class Net_IPv6
 				$uip =	str_replace('::', ':', $uip);
 			}
 		}
+		if ($netmask !== '')
+		{
+			$uip .= "/$netmask";
+		}
 		return $uip;
+	}
+
+	/**
+	 * Compresses an IPv6 adress
+	 *
+	 * RFC 2373 allows you to compress zeros in an adress to '::'. This
+	 * function expects an valid IPv6 adress and compresses successive zeros
+	 * to '::'
+	 *
+	 * Example:	 FF01:0:0:0:0:0:0:101 	-> FF01::101
+	 *			 0:0:0:0:0:0:0:1		-> ::1
+	 *
+	 * @see Uncompress()
+	 * @param string $ip a valid IPv6-adress (hex format)
+	 * @return string the compressed IPv6-adress (hex format)
+	 */
+	public static function Compress($ip)
+	{
+		$netmask = Net_IPv6::getNetmaskSpec($ip);
+		$ip = Net_IPv6::removeNetmaskSpec($ip);
+		$cip = '';
+		if (!strstr($ip, '::'))
+		{
+			$ipp = explode(':', $ip);
+			for ($i = 0; $i < count($ipp); $i++)
+			{
+				$ipp[$i] = dechex(hexdec($ipp[$i]));
+			}
+			$cip = ':' . join(':', $ipp) . ':';
+			
+			for ($zeros = ':0'; strpos($cip, $zeros) !== false; $zeros .= ':0');
+			$zeros = substr($zeros, 0, -2);
+			if (!empty($zeros))
+			{
+				$cip = str_replace($zeros, ':', $cip);
+			}
+			
+			$cip = preg_replace('/^:([^:])/', '\1', $cip);
+			$cip = preg_replace('/([^:]):$/', '\1', $cip);
+		}
+		if ($netmask)
+		{
+			$cip .= "/$netmask";
+		}
+		return $cip;
 	}
 
 	/**
@@ -1004,8 +1120,8 @@ class Net_IPv6
 			for ($i = 0; $i < count($ipv6); $i++)
 			{
 				$dec = hexdec($ipv6[$i]);
-				$hex = strtoupper(preg_replace('/^[0]{1,3}(.*[0-9a-fA-F])$/', '\\1', $ipv6[$i]));
-				if ($ipv6[$i] >= 0 && $dec <= 65535 && $hex === strtoupper(dechex($dec)))
+				$hex = strtoupper(ltrim($ipv6[$i], '0'));
+				if ($dec >= 0 && $dec <= 65535 && $hex === strtoupper(dechex($dec)))
 				{
 					$count++;
 				}

@@ -121,7 +121,7 @@ class IRI
 	 */
 	public function __toString()
 	{
-		return $this->get_iri();
+		return $this->iri;
 	}
 
 	/**
@@ -231,58 +231,58 @@ class IRI
 		if ($relative !== '')
 		{
 			$relative = new IRI($relative);
-			if ($relative->get_scheme() !== null)
+			if ($relative->scheme !== null)
 			{
 				$target = $relative;
 			}
-			elseif ($base->get_iri() !== null)
+			elseif ($base->iri !== null)
 			{
-				if ($relative->get_authority() !== null)
+				if ($relative->authority !== null)
 				{
 					$target = $relative;
-					$target->set_scheme($base->get_scheme());
+					$target->set_scheme($base->scheme);
 				}
 				else
 				{
 					$target = new IRI('');
-					$target->set_scheme($base->get_scheme());
-					$target->set_userinfo($base->get_userinfo());
-					$target->set_host($base->get_host());
-					$target->set_port($base->get_port());
-					if ($relative->get_path() !== null)
+					$target->set_scheme($base->scheme);
+					$target->set_userinfo($base->userinfo);
+					$target->set_host($base->host);
+					$target->set_port($base->port);
+					if ($relative->path !== null)
 					{
-						if (strpos($relative->get_path(), '/') === 0)
+						if (strpos($relative->path, '/') === 0)
 						{
-							$target->set_path($relative->get_path());
+							$target->set_path($relative->path);
 						}
-						elseif (($base->get_userinfo() !== null || $base->get_host() !== null || $base->get_port() !== null) && $base->get_path() === null)
+						elseif (($base->userinfo !== null || $base->host !== null || $base->port !== null) && $base->path === null)
 						{
-							$target->set_path('/' . $relative->get_path());
+							$target->set_path('/' . $relative->path);
 						}
-						elseif (($last_segment = strrpos($base->get_path(), '/')) !== false)
+						elseif (($last_segment = strrpos($base->path, '/')) !== false)
 						{
-							$target->set_path(substr($base->get_path(), 0, $last_segment + 1) . $relative->get_path());
+							$target->set_path(substr($base->path, 0, $last_segment + 1) . $relative->path);
 						}
 						else
 						{
-							$target->set_path($relative->get_path());
+							$target->set_path($relative->path);
 						}
-						$target->set_query($relative->get_query());
+						$target->set_query($relative->query);
 					}
 					else
 					{
-						$target->set_path($base->get_path());
-						if ($relative->get_query() !== null)
+						$target->set_path($base->path);
+						if ($relative->query !== null)
 						{
-							$target->set_query($relative->get_query());
+							$target->set_query($relative->query);
 						}
-						elseif ($base->get_query() !== null)
+						elseif ($base->query !== null)
 						{
-							$target->set_query($base->get_query());
+							$target->set_query($base->query);
 						}
 					}
 				}
-				$target->set_fragment($relative->get_fragment());
+				$target->set_fragment($relative->fragment);
 			}
 			else
 			{
@@ -758,7 +758,7 @@ class IRI
 		{
 			$iri .= $this->scheme . ':';
 		}
-		if (($authority = $this->get_authority()) !== null)
+		if (($authority = $this->authority) !== null)
 		{
 			$iri .= '//' . $authority;
 		}

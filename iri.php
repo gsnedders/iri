@@ -940,20 +940,20 @@ class Net_IPv6
 			else if ($c1 === -1)
 			{
 				$fill = str_repeat('0:', 7 - $c2);
-				$uip =	str_replace('::', $fill, $uip);
+				$uip = str_replace('::', $fill, $uip);
 			}
 			// xxx::
 			else if ($c2 === -1)
 			{
 				$fill = str_repeat(':0', 7 - $c1);
-				$uip =	str_replace('::', $fill, $uip);
+				$uip = str_replace('::', $fill, $uip);
 			}
 			// xxx::xxx
 			else
 			{
 				$fill = str_repeat(':0:', 6 - $c2 - $c1);
-				$uip =	str_replace('::', $fill, $uip);
-				$uip =	str_replace('::', ':', $uip);
+				$uip = str_replace('::', $fill, $uip);
+				$uip = str_replace('::', ':', $uip);
 			}
 		}
 		if ($netmask !== '')

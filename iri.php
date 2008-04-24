@@ -937,9 +937,8 @@ class Net_IPv6
 			// xxx::xxx
 			else
 			{
-				$fill = str_repeat(':0:', 6 - $c2 - $c1);
+				$fill = ':' . str_repeat('0:', 6 - $c2 - $c1);
 				$uip = str_replace('::', $fill, $uip);
-				$uip = str_replace('::', ':', $uip);
 			}
 		}
 		if ($netmask !== '')

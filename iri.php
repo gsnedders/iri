@@ -892,7 +892,7 @@ class Net_IPv6
 		$uip = self::removeNetmaskSpec($ip);
 		$c1 = -1;
 		$c2 = -1;
-		if (strpos($uip, '::') !== false)
+		if (substr_count($uip, '::') === 1)
 		{
 			list($ip1, $ip2) = explode('::', $uip);
 			if ($ip1 === '')
@@ -902,14 +902,7 @@ class Net_IPv6
 			else
 			{
 				$pos = 0;
-				if (($pos = substr_count($ip1, ':')) > 0)
-				{
-					$c1 = $pos;
-				}
-				else
-				{
-					$c1 = 0;
-				}
+				$c1 = substr_count($ip1, ':');
 			}
 			if ($ip2 === '')
 			{
@@ -918,16 +911,9 @@ class Net_IPv6
 			else
 			{
 				$pos = 0;
-				if (($pos = substr_count($ip2, ':')) > 0)
-				{
-					$c2 = $pos;
-				}
-				else
-				{
-					$c2 = 0;
-				}
+				$c2 = substr_count($ip2, ':');
 			}
-			if (strstr($ip2, '.'))
+			if (strpos($ip2, '.') !== false)
 			{
 				$c2++;
 			}

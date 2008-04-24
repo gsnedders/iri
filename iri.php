@@ -155,6 +155,10 @@ class IRI
 		{
 			return call_user_func(array($this, 'get_' . $name));
 		}
+		elseif ($name !== 'valid' && isset($this->$name))
+		{
+			return $this->$name;
+		}
 		else
 		{
 			return parent::__get($name);
@@ -169,7 +173,7 @@ class IRI
 	 */
 	public function __isset($name)
 	{
-		if (method_exists($this, 'get_' . $name))
+		if (method_exists($this, 'get_' . $name) || ($name !== 'valid' && isset($this->$name)))
 		{
 			return true;
 		}
@@ -782,16 +786,6 @@ class IRI
 	}
 
 	/**
-	 * Get the scheme
-	 *
-	 * @return string
-	 */
-	private function get_scheme()
-	{
-		return $this->scheme;
-	}
-
-	/**
 	 * Get the complete authority
 	 *
 	 * @return string
@@ -820,66 +814,6 @@ class IRI
 		{
 			return null;
 		}
-	}
-
-	/**
-	 * Get the user information
-	 *
-	 * @return string
-	 */
-	private function get_userinfo()
-	{
-		return $this->userinfo;
-	}
-
-	/**
-	 * Get the host
-	 *
-	 * @return string
-	 */
-	private function get_host()
-	{
-		return $this->host;
-	}
-
-	/**
-	 * Get the port
-	 *
-	 * @return string
-	 */
-	private function get_port()
-	{
-		return $this->port;
-	}
-
-	/**
-	 * Get the path
-	 *
-	 * @return string
-	 */
-	private function get_path()
-	{
-		return $this->path;
-	}
-
-	/**
-	 * Get the query
-	 *
-	 * @return string
-	 */
-	private function get_query()
-	{
-		return $this->query;
-	}
-
-	/**
-	 * Get the fragment
-	 *
-	 * @return string
-	 */
-	private function get_fragment()
-	{
-		return $this->fragment;
 	}
 }
 

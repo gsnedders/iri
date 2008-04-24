@@ -518,7 +518,7 @@ class IRI
 	 * @param string $scheme
 	 * @return bool
 	 */
-	public function set_scheme($scheme)
+	private function set_scheme($scheme)
 	{
 		if ($scheme === null || $scheme === '')
 		{
@@ -558,7 +558,7 @@ class IRI
 	 * @param string $authority
 	 * @return bool
 	 */
-	public function set_authority($authority)
+	private function set_authority($authority)
 	{
 		if (($userinfo_end = strrpos($authority, '@')) !== false)
 		{
@@ -589,7 +589,7 @@ class IRI
 	 * @param string $userinfo
 	 * @return bool
 	 */
-	public function set_userinfo($userinfo)
+	private function set_userinfo($userinfo)
 	{
 		if ($userinfo === null || $userinfo === '')
 		{
@@ -610,7 +610,7 @@ class IRI
 	 * @param string $host
 	 * @return bool
 	 */
-	public function set_host($host)
+	private function set_host($host)
 	{
 		if ($host === null || $host === '')
 		{
@@ -648,7 +648,7 @@ class IRI
 	 * @param string $port
 	 * @return bool
 	 */
-	public function set_port($port)
+	private function set_port($port)
 	{
 		if ($port === null || $port === '')
 		{
@@ -676,7 +676,7 @@ class IRI
 	 * @param string $path
 	 * @return bool
 	 */
-	public function set_path($path)
+	private function set_path($path)
 	{
 		if ($path === null || $path === '')
 		{
@@ -708,7 +708,7 @@ class IRI
 	 * @param string $query
 	 * @return bool
 	 */
-	public function set_query($query)
+	private function set_query($query)
 	{
 		if ($query === null || $query === '')
 		{
@@ -728,7 +728,7 @@ class IRI
 	 * @param string $fragment
 	 * @return bool
 	 */
-	public function set_fragment($fragment)
+	private function set_fragment($fragment)
 	{
 		if ($fragment === null || $fragment === '')
 		{
@@ -747,7 +747,7 @@ class IRI
 	 *
 	 * @return string
 	 */
-	public function get_iri()
+	private function get_iri()
 	{
 		$iri = '';
 		if ($this->scheme !== null)
@@ -786,7 +786,7 @@ class IRI
 	 *
 	 * @return string
 	 */
-	public function get_scheme()
+	private function get_scheme()
 	{
 		return $this->scheme;
 	}
@@ -796,7 +796,7 @@ class IRI
 	 *
 	 * @return string
 	 */
-	public function get_authority()
+	private function get_authority()
 	{
 		$authority = '';
 		if ($this->userinfo !== null)
@@ -827,7 +827,7 @@ class IRI
 	 *
 	 * @return string
 	 */
-	public function get_userinfo()
+	private function get_userinfo()
 	{
 		return $this->userinfo;
 	}
@@ -837,7 +837,7 @@ class IRI
 	 *
 	 * @return string
 	 */
-	public function get_host()
+	private function get_host()
 	{
 		return $this->host;
 	}
@@ -847,7 +847,7 @@ class IRI
 	 *
 	 * @return string
 	 */
-	public function get_port()
+	private function get_port()
 	{
 		return $this->port;
 	}
@@ -857,7 +857,7 @@ class IRI
 	 *
 	 * @return string
 	 */
-	public function get_path()
+	private function get_path()
 	{
 		return $this->path;
 	}
@@ -867,7 +867,7 @@ class IRI
 	 *
 	 * @return string
 	 */
-	public function get_query()
+	private function get_query()
 	{
 		return $this->query;
 	}
@@ -877,7 +877,7 @@ class IRI
 	 *
 	 * @return string
 	 */
-	public function get_fragment()
+	private function get_fragment()
 	{
 		return $this->fragment;
 	}

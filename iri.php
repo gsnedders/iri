@@ -906,7 +906,7 @@ class Net_IPv6
 	 * @return string the IP the without netmask
 	 * @since 1.1.0
 	 */
-	public static function removeNetmaskSpec($ip)
+	private static function removeNetmaskSpec($ip)
 	{
 		if (substr_count($ip, '/') === 1)
 		{
@@ -926,7 +926,7 @@ class Net_IPv6
 	 * @return String the netmask spec
 	 * @since 1.1.0
 	 */
-	public static function getNetmaskSpec($ip)
+	private static function getNetmaskSpec($ip)
 	{
 		if (substr_count($ip, '/') === 1)
 		{
@@ -954,8 +954,8 @@ class Net_IPv6
 	 */
 	public static function Uncompress($ip)
 	{
-		$netmask = Net_IPv6::getNetmaskSpec($ip);
-		$uip = Net_IPv6::removeNetmaskSpec($ip);
+		$netmask = self::getNetmaskSpec($ip);
+		$uip = self::removeNetmaskSpec($ip);
 		$c1 = -1;
 		$c2 = -1;
 		if (strpos($uip, '::') !== false)
@@ -1045,12 +1045,12 @@ class Net_IPv6
 	 */
 	public static function Compress($ip)
 	{
-		$netmask = Net_IPv6::getNetmaskSpec($ip);
-		$ip = Net_IPv6::removeNetmaskSpec($ip);
-		$cip = '';
-		if (!strstr($ip, '::'))
+		$netmask = self::getNetmaskSpec($ip);
+		$ip = self::removeNetmaskSpec($ip);
+		$ip_parts = self::SplitV64($ip);
+		if (strpos($ip_parts[0], '::') === false)
 		{
-			$ipp = explode(':', $ip);
+			$ipp = explode(':', $ip_parts[0]);
 			for ($i = 0; $i < count($ipp); $i++)
 			{
 				$ipp[$i] = dechex(hexdec($ipp[$i]));
@@ -1066,6 +1066,14 @@ class Net_IPv6
 			
 			$cip = preg_replace('/^:([^:])/', '\1', $cip);
 			$cip = preg_replace('/([^:]):$/', '\1', $cip);
+		}
+		else
+		{
+			$cip = $ip_parts[0];
+		}
+		if ($ip_parts[1] !== '')
+		{
+			$cip .= ":{$ip_parts[1]}";
 		}
 		if ($netmask)
 		{
@@ -1086,9 +1094,9 @@ class Net_IPv6
 	 * @param string $ip a valid IPv6-address (hex format)
 	 * @return array [0] contains the IPv6 part, [1] the IPv4 part (hex format)
 	 */
-	public static function SplitV64($ip)
+	private static function SplitV64($ip)
 	{
-		$ip = Net_IPv6::Uncompress($ip);
+		$ip = self::removeNetmaskSpec($ip);
 		if (strpos($ip, '.') !== false)
 		{
 			$pos = strrpos($ip, ':');
@@ -1112,21 +1120,21 @@ class Net_IPv6
 	 */
 	public static function checkIPv6($ip)
 	{
-		$ipPart = Net_IPv6::SplitV64($ip);
+		$ip = self::Uncompress($ip);
+		$ipPart = self::SplitV64($ip);
 		$count = 0;
 		if (!empty($ipPart[0]))
 		{
 			$ipv6 = explode(':', $ipPart[0]);
-			for ($i = 0; $i < count($ipv6); $i++)
+			foreach ($ipv6 as $ipv6_part)
 			{
-				$dec = hexdec($ipv6[$i]);
-				$hex = strtoupper(ltrim($ipv6[$i], '0'));
-				if ($dec >= 0 && $dec <= 65535 && $hex === strtoupper(dechex($dec)))
+				$dec = hexdec($ipv6_part);
+				if ($dec >= 0 && $dec <= 65535 && ctype_xdigit($ipv6_part))
 				{
 					$count++;
 				}
 			}
-			if ($count === 8)
+			if ($count === 8 && empty($ipPart[1]))
 			{
 				return true;
 			}
@@ -1136,7 +1144,7 @@ class Net_IPv6
 				$count = 0;
 				foreach ($ipv4 as $ipv4_part)
 				{
-					if ($ipv4_part >= 0 && $ipv4_part <= 255 && preg_match('/^\d{1,3}$/', $ipv4_part))
+					if ($ipv4_part >= 0 && $ipv4_part <= 255 && ctype_digit($ipv4_part))
 					{
 						$count++;
 					}

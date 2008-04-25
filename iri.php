@@ -962,6 +962,7 @@ class Net_IPv6
 	 */
 	public static function Compress($ip)
 	{
+		$ip = self::Uncompress($ip);
 		$netmask = self::getNetmaskSpec($ip);
 		$ip = self::removeNetmaskSpec($ip);
 		$ip_parts = self::SplitV64($ip);

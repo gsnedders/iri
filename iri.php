@@ -1048,7 +1048,7 @@ class Net_IPv6
 			foreach ($ipv6 as $ipv6_part)
 			{
 				$dec = hexdec($ipv6_part);
-				if ($dec >= 0 && $dec <= 65535 && ctype_xdigit($ipv6_part))
+				if ($dec >= 0 && $dec <= 0xFFFF && ctype_xdigit($ipv6_part))
 				{
 					$count++;
 				}

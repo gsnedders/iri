@@ -901,7 +901,6 @@ class Net_IPv6
 			}
 			else
 			{
-				$pos = 0;
 				$c1 = substr_count($ip1, ':');
 			}
 			if ($ip2 === '')
@@ -910,7 +909,6 @@ class Net_IPv6
 			}
 			else
 			{
-				$pos = 0;
 				$c2 = substr_count($ip2, ':');
 			}
 			if (strpos($ip2, '.') !== false)
@@ -1041,8 +1039,9 @@ class Net_IPv6
 	{
 		$ip = self::Uncompress($ip);
 		$ipPart = self::SplitV64($ip);
+		$netmask = self::getNetmaskSpec($ip);
 		$count = 0;
-		if (!empty($ipPart[0]))
+		if (!empty($ipPart[0]) && ($netmask === '' || (ctype_digit($netmask) && $netmask >= 0 && $netmask <= 128)))
 		{
 			$ipv6 = explode(':', $ipPart[0]);
 			foreach ($ipv6 as $ipv6_part)
@@ -1073,16 +1072,8 @@ class Net_IPv6
 					return true;
 				}
 			}
-			else
-			{
-				return false;
-			}
-
 		}
-		else
-		{
-			return false;
-		}
+		return false;
 	}
 }
 

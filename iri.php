@@ -842,9 +842,9 @@ class Net_IPv6
 	 */
 	private static function removeNetmaskSpec($ip)
 	{
-		if (substr_count($ip, '/') === 1)
+		if (strpos($ip, '/') !== false)
 		{
-			list($addr, $nm) = explode('/', $ip);
+			list($addr, $nm) = explode('/', $ip, 2);
 		}
 		else
 		{
@@ -862,9 +862,9 @@ class Net_IPv6
 	 */
 	private static function getNetmaskSpec($ip)
 	{
-		if (substr_count($ip, '/') === 1)
+		if (strpos($ip, '/') !== false)
 		{
-			list($addr, $nm) = explode('/', $ip);
+			list($addr, $nm) = explode('/', $ip, 2);
 		}
 		else
 		{

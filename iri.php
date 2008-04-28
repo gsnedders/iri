@@ -624,7 +624,7 @@ class IRI
 		}
 		elseif ($host[0] === '[' && substr($host, -1) === ']')
 		{
-			if (Net_IPv6::checkIPv6(substr($host, 1, -1)))
+			if (Net_IPv6::check_ipv6(substr($host, 1, -1)))
 			{
 				$this->host = $host;
 				$this->valid[__FUNCTION__] = true;
@@ -840,7 +840,7 @@ class Net_IPv6
 	 * @return string the IP the without netmask
 	 * @since 1.1.0
 	 */
-	private static function removeNetmaskSpec($ip)
+	private static function remove_netmask_spec($ip)
 	{
 		if (strpos($ip, '/') !== false)
 		{
@@ -860,7 +860,7 @@ class Net_IPv6
 	 * @return String the netmask spec
 	 * @since 1.1.0
 	 */
-	private static function getNetmaskSpec($ip)
+	private static function get_netmask_spec($ip)
 	{
 		if (strpos($ip, '/') !== false)
 		{
@@ -886,10 +886,10 @@ class Net_IPv6
 	 * @param string $ip a valid IPv6-address (hex format)
 	 * @return string the uncompressed IPv6-address (hex format)
 	 */
-	public static function Uncompress($ip)
+	public static function uncompress($ip)
 	{
-		$netmask = self::getNetmaskSpec($ip);
-		$uip = self::removeNetmaskSpec($ip);
+		$netmask = self::get_netmask_spec($ip);
+		$uip = self::remove_netmask_spec($ip);
 		$c1 = -1;
 		$c2 = -1;
 		if (substr_count($uip, '::') === 1)
@@ -956,17 +956,17 @@ class Net_IPv6
 	 * Example:	 FF01:0:0:0:0:0:0:101 	-> FF01::101
 	 *			 0:0:0:0:0:0:0:1		-> ::1
 	 *
-	 * @see Uncompress()
+	 * @see uncompress()
 	 * @param string $ip a valid IPv6-adress (hex format)
 	 * @return string the compressed IPv6-adress (hex format)
 	 */
-	public static function Compress($ip)
+	public static function compress($ip)
 	{
 		// Prepare the IP to be compressed
-		$ip = self::Uncompress($ip);
-		$netmask = self::getNetmaskSpec($ip);
-		$ip = self::removeNetmaskSpec($ip);
-		$ip_parts = self::SplitV64($ip);
+		$ip = self::uncompress($ip);
+		$netmask = self::get_netmask_spec($ip);
+		$ip = self::remove_netmask_spec($ip);
+		$ip_parts = self::split_v6_v4($ip);
 		
 		// Break up the IP into each seperate part
 		$ipp = explode(':', $ip_parts[0]);
@@ -1058,9 +1058,9 @@ class Net_IPv6
 	 * @param string $ip a valid IPv6-address (hex format)
 	 * @return array [0] contains the IPv6 part, [1] the IPv4 part (hex format)
 	 */
-	private static function SplitV64($ip)
+	private static function split_v6_v4($ip)
 	{
-		$ip = self::removeNetmaskSpec($ip);
+		$ip = self::remove_netmask_spec($ip);
 		if (strpos($ip, '.') !== false)
 		{
 			$pos = strrpos($ip, ':');
@@ -1082,11 +1082,11 @@ class Net_IPv6
 	 * @param string $ip a valid IPv6-address
 	 * @return bool true if $ip is an IPv6 address
 	 */
-	public static function checkIPv6($ip)
+	public static function check_ipv6($ip)
 	{
-		$ip = self::Uncompress($ip);
-		$ipPart = self::SplitV64($ip);
-		$netmask = self::getNetmaskSpec($ip);
+		$ip = self::uncompress($ip);
+		$ipPart = self::split_v6_v4($ip);
+		$netmask = self::get_netmask_spec($ip);
 		$count = 0;
 		if (!empty($ipPart[0]) && ($netmask === '' || (ctype_digit($netmask) && $netmask >= 0 && $netmask <= 128)))
 		{

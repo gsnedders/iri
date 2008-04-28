@@ -820,27 +820,18 @@ class IRI
 /**
  * Class to validate and to work with IPv6 addresses.
  *
- * @category Net
- * @package Net_IPv6
- * @author Alexander Merz <alexander.merz@web.de>
- * @copyright 2003-2005 The PHP Group
- * @license http://www.opensource.org/licenses/bsd-license.php
- * @version CVS: $Id: IPv6.php,v 1.15 2007/11/16 00:22:28 alexmerz Exp $
- * @link http://pear.php.net/package/Net_IPv6
- * @author elfrink at introweb dot nl
- * @author Josh Peck <jmp at joshpeck dot org>
- * @author Geoffrey Sneddon
+ * This was originally based on the PEAR class of the same name, but has been
+ * entirely rewritten.
  */
 class Net_IPv6
 {
 	/**
-	 * Removes a possible existing netmask specification of an IP address.
+	 * Removes any existing address prefix from an IPv6 address.
 	 *
-	 * @param string $ip the (compressed) IP as Hex representation
-	 * @return string the IP the without netmask
-	 * @since 1.1.0
+	 * @param string $ip The IPv6 address
+	 * @return string The IPv6 address the without address prefix
 	 */
-	private static function remove_netmask_spec($ip)
+	private static function remove_address_prefix($ip)
 	{
 		if (strpos($ip, '/') !== false)
 		{
@@ -854,13 +845,12 @@ class Net_IPv6
 	}
 	
 	/**
-	 * Returns a possible existing netmask specification at an IP addresse.
+	 * Returns any address prefix from an IPv5 address.
 	 *
-	 * @param String $ip the (compressed) IP as Hex representation
-	 * @return String the netmask spec
-	 * @since 1.1.0
+	 * @param string $ip The IPv6 address
+	 * @return string The address prefix
 	 */
-	private static function get_netmask_spec($ip)
+	private static function get_address_prefix($ip)
 	{
 		if (strpos($ip, '/') !== false)
 		{
@@ -876,20 +866,25 @@ class Net_IPv6
 	/**
 	 * Uncompresses an IPv6 address
 	 *
-	 * RFC 2373 allows you to compress zeros in an address to '::'. This
-	 * function expects an valid IPv6 address and expands the '::' to
-	 * the required zeros.
+	 * RFC 4291 allows you to compress concecutive zero pieces in an address to
+	 * '::'. This method expects a valid IPv6 address and expands the '::' to
+	 * the required number of zero pieces.
 	 *
-	 * Example:	 FF01::101	->	FF01:0:0:0:0:0:0:101
-	 *			 ::1		->	0:0:0:0:0:0:0:1
+	 * Example:	 FF01::101  ->  FF01:0:0:0:0:0:0:101
+	 *           ::1        ->  0:0:0:0:0:0:0:1
 	 *
-	 * @param string $ip a valid IPv6-address (hex format)
-	 * @return string the uncompressed IPv6-address (hex format)
+	 * @author Alexander Merz <alexander.merz@web.de>
+	 * @author elfrink at introweb dot nl
+	 * @author Josh Peck <jmp at joshpeck dot org>
+	 * @copyright 2003-2005 The PHP Group
+	 * @license http://www.opensource.org/licenses/bsd-license.php
+	 * @param string $ip An IPv6 address
+	 * @return string The uncompressed IPv6 address
 	 */
 	public static function uncompress($ip)
 	{
-		$netmask = self::get_netmask_spec($ip);
-		$uip = self::remove_netmask_spec($ip);
+		$netmask = self::get_address_prefix($ip);
+		$uip = self::remove_address_prefix($ip);
 		$c1 = -1;
 		$c2 = -1;
 		if (substr_count($uip, '::') === 1)
@@ -947,25 +942,25 @@ class Net_IPv6
 	}
 
 	/**
-	 * Compresses an IPv6 adress
+	 * Compresses an IPv6 address
 	 *
-	 * RFC 2373 allows you to compress zeros in an adress to '::'. This
-	 * function expects an valid IPv6 adress and compresses successive zeros
-	 * to '::'
+	 * RFC 4291 allows you to compress concecutive zero pieces in an address to
+	 * '::'. This method expects a valid IPv6 address and compresses consecutive
+	 * zero pieces to '::'.
 	 *
-	 * Example:	 FF01:0:0:0:0:0:0:101 	-> FF01::101
-	 *			 0:0:0:0:0:0:0:1		-> ::1
+	 * Example:	 FF01:0:0:0:0:0:0:101  ->  FF01::101
+	 *           0:0:0:0:0:0:0:1       ->  ::1
 	 *
 	 * @see uncompress()
-	 * @param string $ip a valid IPv6-adress (hex format)
-	 * @return string the compressed IPv6-adress (hex format)
+	 * @param string $ip An IPv6 address
+	 * @return string The compressed IPv6 address
 	 */
 	public static function compress($ip)
 	{
 		// Prepare the IP to be compressed
 		$ip = self::uncompress($ip);
-		$netmask = self::get_netmask_spec($ip);
-		$ip = self::remove_netmask_spec($ip);
+		$netmask = self::get_address_prefix($ip);
+		$ip = self::remove_address_prefix($ip);
 		$ip_parts = self::split_v6_v4($ip);
 		
 		// Break up the IP into each seperate part
@@ -1047,20 +1042,20 @@ class Net_IPv6
 	}
 
 	/**
-	 * Splits an IPv6 address into the IPv6 and a possible IPv4 part
+	 * Splits an IPv6 address into the IPv6 and IPv4 representation parts
 	 *
-	 * RFC 2373 allows you to note the last two parts of an IPv6 address as
-	 * an IPv4 compatible address
+	 * RFC 4291 allows you to represent the last two parts of an IPv6 address
+	 * using the standard IPv4 representation
 	 *
 	 * Example:	 0:0:0:0:0:0:13.1.68.3
-	 *			 0:0:0:0:0:FFFF:129.144.52.38
+	 *           0:0:0:0:0:FFFF:129.144.52.38
 	 *
-	 * @param string $ip a valid IPv6-address (hex format)
-	 * @return array [0] contains the IPv6 part, [1] the IPv4 part (hex format)
+	 * @param string $ip An IPv6 address
+	 * @return array [0] contains the IPv6 represented part, and [1] the IPv4 represented part
 	 */
 	private static function split_v6_v4($ip)
 	{
-		$ip = self::remove_netmask_spec($ip);
+		$ip = self::remove_address_prefix($ip);
 		if (strpos($ip, '.') !== false)
 		{
 			$pos = strrpos($ip, ':');
@@ -1077,16 +1072,16 @@ class Net_IPv6
 	/**
 	 * Checks an IPv6 address
 	 *
-	 * Checks if the given IP is IPv6-compatible
+	 * Checks if the given IP is a valid IPv6 address
 	 *
-	 * @param string $ip a valid IPv6-address
-	 * @return bool true if $ip is an IPv6 address
+	 * @param string $ip An IPv6 address
+	 * @return bool true if $ip is a valid IPv6 address
 	 */
 	public static function check_ipv6($ip)
 	{
 		$ip = self::uncompress($ip);
 		$ipPart = self::split_v6_v4($ip);
-		$netmask = self::get_netmask_spec($ip);
+		$netmask = self::get_address_prefix($ip);
 		$count = 0;
 		if (!empty($ipPart[0]) && ($netmask === '' || (ctype_digit($netmask) && $netmask >= 0 && $netmask <= 128)))
 		{

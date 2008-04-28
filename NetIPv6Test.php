@@ -69,7 +69,7 @@ class NetIPv6Test extends PHPUnit_Framework_TestCase
 	 */
 	public function testCompress($input, $output)
 	{
-		$this->assertEquals(strtolower($output), strtolower(Net_IPv6::Compress($input)));
+		$this->assertEquals(strtolower($output), strtolower(Net_IPv6::compress($input)));
 	}
 	
 	public static function uncompress_tests()
@@ -87,7 +87,7 @@ class NetIPv6Test extends PHPUnit_Framework_TestCase
 	 */
 	public function testUncompress($input, $output)
 	{
-		$this->assertEquals(strtolower($output), strtolower(Net_IPv6::Uncompress($input)));
+		$this->assertEquals(strtolower($output), strtolower(Net_IPv6::uncompress($input)));
 	}
 	
 	public static function validity_tests()
@@ -146,7 +146,7 @@ class NetIPv6Test extends PHPUnit_Framework_TestCase
 	 */
 	public function testValid($input, $valid)
 	{
-		$this->assertEquals($valid, Net_IPv6::checkIPv6($input));
+		$this->assertEquals($valid, Net_IPv6::check_ipv6($input));
 	}
 }
 

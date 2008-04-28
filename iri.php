@@ -821,7 +821,7 @@ class IRI
  * Class to validate and to work with IPv6 addresses.
  *
  * This was originally based on the PEAR class of the same name, but has been
- * entirely rewritten.
+ * almost entirely rewritten.
  */
 class Net_IPv6
 {

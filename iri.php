@@ -962,37 +962,83 @@ class Net_IPv6
 	 */
 	public static function Compress($ip)
 	{
+		// Prepare the IP to be compressed
 		$ip = self::Uncompress($ip);
 		$netmask = self::getNetmaskSpec($ip);
 		$ip = self::removeNetmaskSpec($ip);
 		$ip_parts = self::SplitV64($ip);
-		if (strpos($ip_parts[0], '::') === false)
+		
+		// Break up the IP into each seperate part
+		$ipp = explode(':', $ip_parts[0]);
+		
+		// Initialise vars to count consecutive zero pieces
+		$consecutive_zeros = 0;
+		$max_consecutive_zeros = 0;
+		for ($i = 0; $i < count($ipp); $i++)
 		{
-			$ipp = explode(':', $ip_parts[0]);
+			// Normalise the number (this changes things like 01 to 0)
+			$ipp[$i] = dechex(hexdec($ipp[$i]));
+			
+			// Count the zeros
+			if ($ipp[$i] === '0')
+			{
+				$consecutive_zeros++;
+			}
+			elseif ($consecutive_zeros > $max_consecutive_zeros)
+			{
+				$consecutive_zeros_pos = $i - $consecutive_zeros;
+				$max_consecutive_zeros = $consecutive_zeros;
+				$consecutive_zeros = 0;
+			}
+		}
+		if ($consecutive_zeros > $max_consecutive_zeros)
+		{
+			$consecutive_zeros_pos = $i - $consecutive_zeros;
+			$max_consecutive_zeros = $consecutive_zeros;
+			$consecutive_zeros = 0;
+		}
+		
+		// Rebuild the IP
+		if ($max_consecutive_zeros > 0)
+		{
+			$cip = '';
 			for ($i = 0; $i < count($ipp); $i++)
 			{
-				$ipp[$i] = dechex(hexdec($ipp[$i]));
+				// Add a : for the longest consecutive sequence, or :: if it's at the end
+				if ($i === $consecutive_zeros_pos)
+				{
+					if ($i === count($ipp) - $max_consecutive_zeros)
+					{
+						$cip .= '::';
+					}
+					else
+					{
+						$cip .= ':';
+					}
+				}
+				// Otherwise, just add the piece to the new output
+				elseif ($i < $consecutive_zeros_pos || $i >= $consecutive_zeros_pos + $max_consecutive_zeros)
+				{
+					if ($i !== 0)
+					{
+						$cip .= ':';
+					}
+					$cip .= $ipp[$i];
+				}
 			}
-			$cip = ':' . join(':', $ipp) . ':';
-			
-			for ($zeros = ':0'; strpos($cip, $zeros) !== false; $zeros .= ':0');
-			$zeros = substr($zeros, 0, -2);
-			if (!empty($zeros))
-			{
-				$cip = str_replace($zeros, ':', $cip);
-			}
-			
-			$cip = preg_replace('/^:([^:])/', '\1', $cip);
-			$cip = preg_replace('/([^:]):$/', '\1', $cip);
 		}
+		// Cheat if we don't have any zero pieces
 		else
 		{
-			$cip = $ip_parts[0];
+			$cip = implode(':', $ipp);
 		}
+		
+		// Re-add any IPv4 part of the address
 		if ($ip_parts[1] !== '')
 		{
 			$cip .= ":{$ip_parts[1]}";
 		}
+		// Re-add any netmask
 		if ($netmask)
 		{
 			$cip .= "/$netmask";

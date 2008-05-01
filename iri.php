@@ -210,12 +210,7 @@ class IRI
 	 */
 	public function __construct($iri = '')
 	{
-		$parsed = $this->parse_iri((string) $iri);
-		$this->set_scheme($parsed['scheme']);
-		$this->set_authority($parsed['authority']);
-		$this->set_path($parsed['path']);
-		$this->set_query($parsed['query']);
-		$this->set_fragment($parsed['fragment']);
+		$this->set_iri($iri);
 	}
 
 	/**
@@ -513,6 +508,24 @@ class IRI
 	public function is_valid()
 	{
 		return array_sum($this->valid) === count($this->valid);
+	}
+
+	/**
+	 * Set the entire IRI. Returns true on success, false on failure (if there
+	 * are any invalid characters).
+	 *
+	 * @param string $iri
+	 * @return bool
+	 */
+	private function set_iri($iri)
+	{
+		$parsed = $this->parse_iri((string) $iri);
+		
+		return $this->set_scheme($parsed['scheme'])
+			&& $this->set_authority($parsed['authority'])
+			&& $this->set_path($parsed['path'])
+			&& $this->set_query($parsed['query'])
+			&& $this->set_fragment($parsed['fragment']);
 	}
 
 	/**

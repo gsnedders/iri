@@ -406,6 +406,7 @@ class IRI
 		// Loop as long as we have invalid characters, advancing the position to the next invalid character
 		while (($position += strspn($string, $valid_chars, $position)) < $strlen)
 		{
+			//var_dump($string, $string[$position]);
 			// If we have a % character
 			if ($string[$position] === '%')
 			{
@@ -449,8 +450,9 @@ class IRI
 			// If we have an invalid character, change into its pct-encoded form
 			else
 			{
-				$string = str_replace($string[$position], '%' . sprintf('%%%02X', ord($string[$position])), $string, $count);
+				$string = str_replace($string[$position], sprintf('%%%02X', ord($string[$position])), $string, $count);
 				$strlen += 2 * $count;
+				$position += 3;
 			}
 		}
 		return $string;

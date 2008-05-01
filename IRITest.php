@@ -103,6 +103,36 @@ class IRITest extends PHPUnit_Framework_TestCase
 		$base = new IRI('http://a/b/c/d;p?q');
 		$this->assertEquals($expected, IRI::absolutize($base, $relative)->iri);
 	}
+	
+	public static function sp_tests()
+	{
+		return array(
+			array('http://a/b/c/d', 'f%0o', 'http://a/b/c/f%250o'),
+			array('http://a/b/', 'c', 'http://a/b/c'),
+			array('http://a/', 'b', 'http://a/b'),
+			array('http://a/', '/b', 'http://a/b'),
+			array('http://a/b', 'c', 'http://a/c'),
+			array('http://a/b/', "c\x0Ad", 'http://a/b/c%0Ad'),
+			array('http://a/b/c', '//0', 'http://0'),
+			array('http://a/b/c', '0', 'http://a/b/0'),
+			array('http://a/b/c', '?0', 'http://a/b/c?0'),
+			array('http://a/b/c', '#0', 'http://a/b/c#0'),
+			array('http://0/b/c', 'd', 'http://0/b/d'),
+			array('http://a/b/c?0', 'd', 'http://a/b/d'),
+			array('http://a/b/c#0', 'd', 'http://a/b/d'),
+			array('http://example.com', '//example.net', 'http://example.net'),
+			array('http:g', 'a', 'http:a'),
+		);
+	}
+ 
+	/**
+	 * @dataProvider sp_tests
+	 */
+	public function testSP($base, $relative, $expected)
+	{
+		$base = new IRI($base);
+		$this->assertEquals($expected, IRI::absolutize($base, $relative)->iri);
+	}
 }
 
 ?>

@@ -138,10 +138,21 @@ class IRITest extends PHPUnit_Framework_TestCase
 	public static function normalization_tests()
 	{
 		return array(
+			array('example://a/b/c/%7Bfoo%7D', 'example://a/b/c/%7Bfoo%7D'),
+			array('eXAMPLE://a/./b/../b/%63/%7bfoo%7d', 'example://a/b/c/%7Bfoo%7D'),
+			array('HTTP://EXAMPLE.com/', 'http://example.com'),
 			array('http://example.com/', 'http://example.com'),
+			array('http://example.com:', 'http://example.com'),
 			array('http://example.com:80', 'http://example.com'),
+			array('http://@example.com', 'http://@example.com'),
+			array('http://example.com?', 'http://example.com?'),
+			array('http://example.com#', 'http://example.com#'),
 			array('https://example.com/', 'https://example.com'),
+			array('https://example.com:', 'https://example.com'),
 			array('https://example.com:80', 'https://example.com'),
+			array('https://@example.com', 'https://@example.com'),
+			array('https://example.com?', 'https://example.com?'),
+			array('https://example.com#', 'https://example.com#'),
 			array('file://localhost/foobar', 'file:/foobar'),
 		);
 	}

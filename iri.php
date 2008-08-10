@@ -454,7 +454,7 @@ class IRI
 						{
 							$chr = strtoupper($chr);
 						}
-						$string = substr_replace($string, $chr, $position + 1, 2);
+						$string = substr_replace($string, $chr, $position, 3);
 						$strlen -= 2;
 						$position++;
 					}

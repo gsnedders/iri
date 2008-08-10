@@ -639,7 +639,7 @@ class IRI
 		}
 		elseif ($host[0] === '[' && substr($host, -1) === ']')
 		{
-			if (Net_IPv6::check_ipv6(substr($host, 1, -1)))
+			if (filter_var(substr($host, 1, -1), FILTER_VALIDATE_IP, FILTER_FLAG_IPV6))
 			{
 				$this->host = $host;
 				$this->valid[__FUNCTION__] = true;
@@ -1082,55 +1082,6 @@ class Net_IPv6
 		{
 			return array($ip, '');
 		}
-	}
-
-	/**
-	 * Checks an IPv6 address
-	 *
-	 * Checks if the given IP is a valid IPv6 address
-	 *
-	 * @param string $ip An IPv6 address
-	 * @return bool true if $ip is a valid IPv6 address
-	 */
-	public static function check_ipv6($ip)
-	{
-		$ip = self::uncompress($ip);
-		$ipPart = self::split_v6_v4($ip);
-		$netmask = self::get_address_prefix($ip);
-		$count = 0;
-		if (!empty($ipPart[0]) && ($netmask === '' || (ctype_digit($netmask) && $netmask >= 0 && $netmask <= 128)))
-		{
-			$ipv6 = explode(':', $ipPart[0]);
-			foreach ($ipv6 as $ipv6_part)
-			{
-				$dec = hexdec($ipv6_part);
-				if ($dec >= 0 && $dec <= 0xFFFF && ctype_xdigit($ipv6_part))
-				{
-					$count++;
-				}
-			}
-			if ($count === 8 && empty($ipPart[1]))
-			{
-				return true;
-			}
-			elseif ($count === 6 && !empty($ipPart[1]))
-			{
-				$ipv4 = explode('.', $ipPart[1]);
-				$count = 0;
-				foreach ($ipv4 as $ipv4_part)
-				{
-					if ($ipv4_part >= 0 && $ipv4_part <= 255 && ctype_digit($ipv4_part))
-					{
-						$count++;
-					}
-				}
-				if ($count === 4)
-				{
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 }
 

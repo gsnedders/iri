@@ -134,6 +134,26 @@ class IRITest extends PHPUnit_Framework_TestCase
 		$base = new IRI($base);
 		$this->assertEquals($expected, IRI::absolutize($base, $relative)->iri);
 	}
+	
+	public static function normalization_tests()
+	{
+		return array(
+			array('http://example.com/', 'http://example.com'),
+			array('http://example.com:80', 'http://example.com'),
+			array('https://example.com/', 'https://example.com'),
+			array('https://example.com:80', 'https://example.com'),
+			array('file://localhost/foobar', 'file:///foobar'),
+		);
+	}
+ 
+	/**
+	 * @dataProvider normalization_tests
+	 */
+	public function testNormalization($input, $output)
+	{
+		$input = new IRI($input);
+		$this->assertEquals($output, $input->iri);
+	}
 }
 
 ?>

@@ -69,8 +69,8 @@ class IRITest extends PHPUnit_Framework_TestCase
 			array('..', 'http://a/b/'),
 			array('../', 'http://a/b/'),
 			array('../g', 'http://a/b/g'),
-			array('../..', 'http://a/'),
-			array('../../', 'http://a/'),
+			array('../..', 'http://a'),
+			array('../../', 'http://a'),
 			array('../../g', 'http://a/g'),
 			// Abnormal
 			array('../../../g', 'http://a/g'),

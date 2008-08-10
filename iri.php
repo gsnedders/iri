@@ -175,15 +175,24 @@ class IRI
 	{
 		if (method_exists($this, 'get_' . $name))
 		{
-			return call_user_func(array($this, 'get_' . $name));
+			$return = call_user_func(array($this, 'get_' . $name));
 		}
 		elseif ($name !== 'valid' && isset($this->$name))
 		{
-			return $this->$name;
+			$return = $this->$name;
 		}
 		else
 		{
-			return null;
+			$return = null;
+		}
+		
+		if ($return === null && isset($this->normalization[$this->scheme][$name]))
+		{
+			return $this->normalization[$this->scheme][$name];
+		}
+		else
+		{
+			return $return;
 		}
 	}
 
@@ -748,19 +757,19 @@ class IRI
 		{
 			$iri .= $this->scheme . ':';
 		}
-		if (($authority = $this->authority) !== null)
+		if (($authority = $this->authority) !== null && (!isset($this->normalization[$this->scheme]['authority']) || $this->normalization[$this->scheme]['authority'] !== $authority))
 		{
 			$iri .= '//' . $authority;
 		}
-		if ($this->path !== null)
+		if ($this->path !== null && (!isset($this->normalization[$this->scheme]['path']) || $this->normalization[$this->scheme]['path'] !== $this->path))
 		{
 			$iri .= $this->path;
 		}
-		if ($this->query !== null)
+		if ($this->query !== null && (!isset($this->normalization[$this->scheme]['query']) || $this->normalization[$this->scheme]['query'] !== $this->query))
 		{
 			$iri .= '?' . $this->query;
 		}
-		if ($this->fragment !== null)
+		if ($this->fragment !== null && (!isset($this->normalization[$this->scheme]['fragment']) || $this->normalization[$this->scheme]['fragment'] !== $this->fragment))
 		{
 			$iri .= '#' . $this->fragment;
 		}
@@ -783,15 +792,15 @@ class IRI
 	private function get_authority()
 	{
 		$authority = '';
-		if ($this->userinfo !== null)
+		if ($this->userinfo !== null && (!isset($this->normalization[$this->scheme]['userinfo']) || $this->normalization[$this->scheme]['userinfo'] !== $this->userinfo))
 		{
 			$authority .= $this->userinfo . '@';
 		}
-		if ($this->host !== null)
+		if ($this->host !== null && (!isset($this->normalization[$this->scheme]['host']) || $this->normalization[$this->scheme]['host'] !== $this->host))
 		{
 			$authority .= $this->host;
 		}
-		if ($this->port !== null)
+		if ($this->port !== null && (!isset($this->normalization[$this->scheme]['port']) || $this->normalization[$this->scheme]['port'] !== $this->port))
 		{
 			$authority .= ':' . $this->port;
 		}

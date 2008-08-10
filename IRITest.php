@@ -140,6 +140,8 @@ class IRITest extends PHPUnit_Framework_TestCase
 		return array(
 			array('example://a/b/c/%7Bfoo%7D', 'example://a/b/c/%7Bfoo%7D'),
 			array('eXAMPLE://a/./b/../b/%63/%7bfoo%7d', 'example://a/b/c/%7Bfoo%7D'),
+			array('example://%61/b/c/%7Bfoo%7D', 'example://a/b/c/%7Bfoo%7D'),
+			array('example://%41/b/c/%7Bfoo%7D', 'example://a/b/c/%7Bfoo%7D'),
 			array('HTTP://EXAMPLE.com/', 'http://example.com'),
 			array('http://example.com/', 'http://example.com'),
 			array('http://example.com:', 'http://example.com'),

@@ -113,6 +113,32 @@ class IRI
 	 * @var array
 	 */
 	private $valid = array();
+	
+	/**
+	 * Normalization database
+	 *
+	 * Each key is the scheme, each value is an array with each key as the IRI
+	 * part and value as the default value for that part.
+	 */
+	private $normalization = array(
+		'acap' => array(
+			'port' => 674
+		),
+		'dict' => array(
+			'port' => 2628
+		),
+		'file' => array(
+			'host' => 'localhost'
+		),
+		'http' => array(
+			'port' => 80,
+			'path' => '/'
+		),
+		'https' => array(
+			'port' => 80,
+			'path' => '/'
+		),
+	);
 
 	/**
 	 * Return the entire IRI when you try and read the object as a string
@@ -135,11 +161,7 @@ class IRI
 	{
 		if (method_exists($this, 'set_' . $name))
 		{
-			return call_user_func(array($this, 'set_' . $name), $value);
-		}
-		else
-		{
-			return parent::__set($name);
+			call_user_func(array($this, 'set_' . $name), $value);
 		}
 	}
 
@@ -161,7 +183,7 @@ class IRI
 		}
 		else
 		{
-			return parent::__get($name);
+			return null;
 		}
 	}
 
@@ -179,7 +201,7 @@ class IRI
 		}
 		else
 		{
-			return parent::__isset($name);
+			return false;
 		}
 	}
 
@@ -195,10 +217,6 @@ class IRI
 		if (method_exists($this, 'set_' . $name))
 		{
 			call_user_func(array($this, 'set_' . $name), '');
-		}
-		else
-		{
-			parent::__unset($name);
 		}
 	}
 
@@ -457,50 +475,6 @@ class IRI
 		}
 		return $string;
 	}
-	
-	/**
-	 * Do normalisation of the current IRI
-	 *
-	 * @todo Normalisation of dict scheme (cannot do this fully per spec without AI)
-	 */
-	private function normalise()
-	{
-		switch ($this->scheme)
-		{
-			case 'http':
-			case 'https':
-				if ($this->port === null)
-				{
-					$this->port = 80;
-				}
-				if ($this->path === null)
-				{
-					$this->path = '/';
-				}
-				break;
-			
-			case 'acap':
-				if ($this->port === null)
-				{
-					$this->port = 674;
-				}
-				break;
-				
-			case 'dict':
-				if ($this->port === null)
-				{
-					$this->port = 2628;
-				}
-				break;
-			
-			case 'file':
-				if ($this->host === null)
-				{
-					$this->host = 'localhost';
-				}
-				break;
-		}
-	}
 
 	/**
 	 * Check if the object represents a valid IRI
@@ -618,6 +592,7 @@ class IRI
 		{
 			$this->userinfo = $this->replace_invalid_with_pct_encoding($userinfo, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:');
 		}
+		
 		$this->valid[__FUNCTION__] = true;
 		return true;
 	}
@@ -1082,6 +1057,19 @@ class Net_IPv6
 		{
 			return array($ip, '');
 		}
+	}
+
+	/**
+	 * Checks an IPv6 address
+	 *
+	 * Checks if the given IP is a valid IPv6 address
+	 *
+	 * @param string $ip An IPv6 address
+	 * @return bool true if $ip is a valid IPv6 address
+	 */
+	public static function check_ipv6($ip)
+	{
+		return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6);
 	}
 }
 

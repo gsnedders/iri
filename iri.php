@@ -325,17 +325,43 @@ class IRI
 		{
 			return $cache[$iri];
 		}
-		elseif (preg_match('/^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/', $iri, $match))
+		elseif (preg_match('/^(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/', $iri, $match))
 		{
-			for ($i = count($match); $i <= 9; $i++)
+			for ($i = 1, $len = count($match); $i < $len; $i++)
 			{
-				$match[$i] = '';
+				switch ($i)
+				{
+					case 1:
+						$regex = '/^(?:([^:\/?#]+):)(?:\/\/([^\/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/';
+						break;
+					
+					case 2:
+						$regex = '/^(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/';
+						break;
+					
+					case 3:
+						$regex = '/^(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*)(\/[^?#]*)|([^?#]+))(?:\?([^#]*))?(?:#(.*))?$/';
+						break;
+					
+					case 4:
+						$regex = '/^(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*)(?:\?([^#]*))(?:#(.*))?$/';
+						break;
+					
+					case 5:
+						$regex = '/^(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))$/';
+						break;
+				}
+				
+				if (!preg_match($regex, $iri))
+				{
+					$match[$i] = null;
+				}
 			}
-			return $cache[$iri] = array('scheme' => $match[2], 'authority' => $match[4], 'path' => $match[5], 'query' => $match[7], 'fragment' => $match[9]);
-		}
-		else
-		{
-			return $cache[$iri] = array('scheme' => '', 'authority' => '', 'path' => '', 'query' => '', 'fragment' => '');
+			for ($i = count($match); $i <= 5; $i++)
+			{
+				$match[$i] = null;
+			}
+			return $cache[$iri] = array('scheme' => $match[1], 'authority' => $match[2], 'path' => $match[3], 'query' => $match[4], 'fragment' => $match[5]);
 		}
 	}
 

@@ -98,10 +98,20 @@ class IRITest extends PHPUnit_Framework_TestCase
 	/**
 	 * @dataProvider rfc3986_tests
 	 */
-	public function testRFC3986($relative, $expected)
+	public function testStringRFC3986($relative, $expected)
 	{
 		$base = new IRI('http://a/b/c/d;p?q');
 		$this->assertEquals($expected, IRI::absolutize($base, $relative)->iri);
+	}
+ 
+	/**
+	 * @dataProvider rfc3986_tests
+	 */
+	public function testObjectRFC3986($relative, $expected)
+	{
+		$base = new IRI('http://a/b/c/d;p?q');
+		$expected = new IRI($expected);
+		$this->assertEquals($expected, IRI::absolutize($base, $relative));
 	}
 	
 	public static function sp_tests()
@@ -129,10 +139,20 @@ class IRITest extends PHPUnit_Framework_TestCase
 	/**
 	 * @dataProvider sp_tests
 	 */
-	public function testSP($base, $relative, $expected)
+	public function testStringSP($base, $relative, $expected)
 	{
 		$base = new IRI($base);
 		$this->assertEquals($expected, IRI::absolutize($base, $relative)->iri);
+	}
+ 
+	/**
+	 * @dataProvider sp_tests
+	 */
+	public function testObjectSP($base, $relative, $expected)
+	{
+		$base = new IRI($base);
+		$expected = new IRI($expected);
+		$this->assertEquals($expected, IRI::absolutize($base, $relative));
 	}
 	
 	public static function normalization_tests()

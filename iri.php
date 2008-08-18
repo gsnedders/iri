@@ -339,10 +339,6 @@ class IRI
 						$regex = '/^(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/';
 						break;
 					
-					case 3:
-						$regex = '/^(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*)(\/[^?#]*)|([^?#]+))(?:\?([^#]*))?(?:#(.*))?$/';
-						break;
-					
 					case 4:
 						$regex = '/^(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*)(?:\?([^#]*))(?:#(.*))?$/';
 						break;
@@ -352,7 +348,14 @@ class IRI
 						break;
 				}
 				
-				if (!preg_match($regex, $iri))
+				if ($i === 3)
+				{
+					if ($match[3] === '')
+					{
+						$match[3] = null;
+					}
+				}
+				elseif (!preg_match($regex, $iri))
 				{
 					$match[$i] = null;
 				}
@@ -574,7 +577,7 @@ class IRI
 	 */
 	private function set_scheme($scheme)
 	{
-		if ($scheme === null || $scheme === '')
+		if ($scheme === null)
 		{
 			$this->scheme = null;
 		}
@@ -645,7 +648,7 @@ class IRI
 	 */
 	private function set_userinfo($userinfo)
 	{
-		if ($userinfo === null || $userinfo === '')
+		if ($userinfo === null)
 		{
 			$this->userinfo = null;
 		}
@@ -671,12 +674,12 @@ class IRI
 	 */
 	private function set_host($host)
 	{
-		if ($host === null || $host === '')
+		if ($host === null)
 		{
 			$this->host = null;
 			return true;
 		}
-		elseif ($host[0] === '[' && substr($host, -1) === ']')
+		elseif (substr($host, 0, 1) === '[' && substr($host, -1) === ']')
 		{
 			if (filter_var(substr($host, 1, -1), FILTER_VALIDATE_IP, FILTER_FLAG_IPV6))
 			{
@@ -742,7 +745,7 @@ class IRI
 	 */
 	private function set_path($path)
 	{
-		if ($path === null || $path === '')
+		if ($path === null)
 		{
 			$this->path = null;
 			return true;
@@ -775,7 +778,7 @@ class IRI
 	 */
 	private function set_query($query)
 	{
-		if ($query === null || $query === '')
+		if ($query === null)
 		{
 			$this->query = null;
 		}
@@ -798,7 +801,7 @@ class IRI
 	 */
 	private function set_fragment($fragment)
 	{
-		if ($fragment === null || $fragment === '')
+		if ($fragment === null)
 		{
 			$this->fragment = null;
 		}
@@ -873,7 +876,7 @@ class IRI
 			$authority .= ':' . $this->port;
 		}
 
-		if ($authority !== '')
+		if ($this->userinfo !== null || $this->host !== null || $this->port !== null)
 		{
 			return $authority;
 		}

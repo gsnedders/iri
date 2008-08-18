@@ -166,7 +166,11 @@ class IRI
 	 */
 	public function __get($name)
 	{
-		if (method_exists($this, 'get_' . $name))
+		if (!$this->is_valid())
+		{
+			return false;
+		}
+		elseif (method_exists($this, 'get_' . $name))
 		{
 			$return = call_user_func(array($this, 'get_' . $name));
 		}
@@ -517,24 +521,24 @@ class IRI
 	{
 		if ($this->scheme !== null)
 		{
-			$len = strlen($scheme);
+			$len = strlen($this->scheme);
 			switch (true)
 			{
 				case $len > 1:
-					if (!strspn($scheme, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-.', 1))
+					if (!strspn($this->scheme, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-.', 1))
 					{
 						return false;
 					}
 
 				case $len > 0:
-					if (!strspn($scheme, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 0, 1))
+					if (!strspn($this->scheme, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 0, 1))
 					{
 						return false;
 					}
 			}
 		}
 		
-		if ($this->host !== null && $this->host[0] === '[' && substr($this->host, -1) === ']' && !filter_var(substr($this->host, 1, -1), FILTER_VALIDATE_IP, FILTER_FLAG_IPV6))
+		if ($this->host !== null && substr($this->host, 0, 1) === '[' && substr($this->host, -1) === ']' && !filter_var(substr($this->host, 1, -1), FILTER_VALIDATE_IP, FILTER_FLAG_IPV6))
 		{
 			return false;
 		}

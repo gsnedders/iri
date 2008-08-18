@@ -162,10 +162,20 @@ class IRITest extends PHPUnit_Framework_TestCase
 	/**
 	 * @dataProvider normalization_tests
 	 */
-	public function testNormalization($input, $output)
+	public function testStringNormalization($input, $output)
 	{
 		$input = new IRI($input);
 		$this->assertEquals($output, $input->iri);
+	}
+ 
+	/**
+	 * @dataProvider normalization_tests
+	 */
+	public function testObjectNormalization($input, $output)
+	{
+		$input = new IRI($input);
+		$output = new IRI($output);
+		$this->assertEquals($output, $input);
 	}
 }
 

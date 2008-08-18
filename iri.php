@@ -745,7 +745,7 @@ class IRI
 	 */
 	private function set_path($path)
 	{
-		if ($path === null)
+		if ($path === null || $path === '')
 		{
 			$this->path = null;
 			return true;

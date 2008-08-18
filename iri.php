@@ -789,19 +789,19 @@ class IRI
 		{
 			$iri .= $this->scheme . ':';
 		}
-		if (($authority = $this->authority) !== null && (!isset($this->normalization[$this->scheme]['authority']) || $this->normalization[$this->scheme]['authority'] !== $authority))
+		if (($authority = $this->authority) !== null)
 		{
 			$iri .= '//' . $authority;
 		}
-		if ($this->path !== null && (!isset($this->normalization[$this->scheme]['path']) || $this->normalization[$this->scheme]['path'] !== $this->path))
+		if ($this->path !== null)
 		{
 			$iri .= $this->path;
 		}
-		if ($this->query !== null && (!isset($this->normalization[$this->scheme]['query']) || $this->normalization[$this->scheme]['query'] !== $this->query))
+		if ($this->query !== null)
 		{
 			$iri .= '?' . $this->query;
 		}
-		if ($this->fragment !== null && (!isset($this->normalization[$this->scheme]['fragment']) || $this->normalization[$this->scheme]['fragment'] !== $this->fragment))
+		if ($this->fragment !== null)
 		{
 			$iri .= '#' . $this->fragment;
 		}
@@ -824,15 +824,15 @@ class IRI
 	private function get_authority()
 	{
 		$authority = '';
-		if ($this->userinfo !== null && (!isset($this->normalization[$this->scheme]['userinfo']) || $this->normalization[$this->scheme]['userinfo'] !== $this->userinfo))
+		if ($this->userinfo !== null)
 		{
 			$authority .= $this->userinfo . '@';
 		}
-		if ($this->host !== null && (!isset($this->normalization[$this->scheme]['host']) || $this->normalization[$this->scheme]['host'] !== $this->host))
+		if ($this->host !== null)
 		{
 			$authority .= $this->host;
 		}
-		if ($this->port !== null && (!isset($this->normalization[$this->scheme]['port']) || $this->normalization[$this->scheme]['port'] !== $this->port))
+		if ($this->port !== null)
 		{
 			$authority .= ':' . $this->port;
 		}

@@ -625,8 +625,7 @@ class IRI
 		{
 			$userinfo = null;
 		}
-
-		if (($port_start = strpos(preg_replace('/\[[^]]+\]/', '', $authority), ':')) !== false)
+		if (($port_start = strpos($authority, ':', strpos($authority, ']'))) !== false)
 		{
 			if (($port = substr($authority, $port_start + 1)) === false)
 			{

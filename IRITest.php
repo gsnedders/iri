@@ -147,6 +147,7 @@ class IRITest extends PHPUnit_Framework_TestCase
 			array('http://example.com:', 'http://example.com'),
 			array('http://example.com:80', 'http://example.com'),
 			array('http://@example.com', 'http://@example.com'),
+			array('http://', 'http://'),
 			array('http://example.com?', 'http://example.com?'),
 			array('http://example.com#', 'http://example.com#'),
 			array('https://example.com/', 'https://example.com'),

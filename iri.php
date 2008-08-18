@@ -548,6 +548,8 @@ class IRI
 		{
 			return false;
 		}
+		
+		return true;
 	}
 
 	/**

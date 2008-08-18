@@ -547,7 +547,7 @@ class IRI
 			return false;
 		}
 		
-		if ($this->port !== null && strspn($this->port, '0123456789') !== strlen($this->port))
+		if ($this->port !== null && !ctype_digit($this->port))
 		{
 			return false;
 		}
@@ -729,7 +729,7 @@ class IRI
 			$this->port = null;
 			return true;
 		}
-		elseif (strspn($port, '0123456789') === strlen($port))
+		elseif (ctype_digit($port))
 		{
 			$this->port = (int) $port;
 			if (isset($this->normalization[$this->scheme]['port']) && $this->port === $this->normalization[$this->scheme]['port'])

@@ -157,6 +157,7 @@ class IRITest extends PHPUnit_Framework_TestCase
 			array('https://example.com?', 'https://example.com?'),
 			array('https://example.com#', 'https://example.com#'),
 			array('file://localhost/foobar', 'file:/foobar'),
+			array('http://[0:0:0:0:0:0:0:1]', 'http://[::1]'),
 		);
 	}
  

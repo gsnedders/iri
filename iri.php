@@ -626,7 +626,7 @@ class IRI
 			$userinfo = null;
 		}
 
-		if (($port_start = strpos($authority, ':')) !== false)
+		if (($port_start = strpos(preg_replace('/\[[^]]+\]/', '', $authority), ':')) !== false)
 		{
 			if (($port = substr($authority, $port_start + 1)) === false)
 			{
@@ -685,12 +685,7 @@ class IRI
 		{
 			if (filter_var(substr($host, 1, -1), FILTER_VALIDATE_IP, FILTER_FLAG_IPV6))
 			{
-				$this->host = $host;
-				if (isset($this->normalization[$this->scheme]['host']) && $this->host === $this->normalization[$this->scheme]['host'])
-				{
-					$this->host = null;
-				}
-				return true;
+				$this->host = '[' . Net_IPv6::compress(substr($host, 1, -1)) . ']';
 			}
 			else
 			{
@@ -701,12 +696,14 @@ class IRI
 		else
 		{
 			$this->host = $this->replace_invalid_with_pct_encoding($host, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=', self::lowercase);
-			if (isset($this->normalization[$this->scheme]['host']) && $this->host === $this->normalization[$this->scheme]['host'])
-			{
-				$this->host = null;
-			}
-			return true;
 		}
+		
+		if (isset($this->normalization[$this->scheme]['host']) && $this->host === $this->normalization[$this->scheme]['host'])
+		{
+			$this->host = null;
+		}
+		
+		return true;
 	}
 
 	/**

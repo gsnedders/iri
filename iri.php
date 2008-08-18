@@ -603,6 +603,11 @@ class IRI
 		else
 		{
 			$this->userinfo = $this->replace_invalid_with_pct_encoding($userinfo, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:');
+			
+			if (isset($this->normalization[$this->scheme]['userinfo']) && $this->userinfo === $this->normalization[$this->scheme]['userinfo'])
+			{
+				$this->userinfo = null;
+			}
 		}
 		
 		$this->valid[__FUNCTION__] = true;
@@ -630,6 +635,10 @@ class IRI
 			{
 				$this->host = $host;
 				$this->valid[__FUNCTION__] = true;
+				if (isset($this->normalization[$this->scheme]['host']) && $this->host === $this->normalization[$this->scheme]['host'])
+				{
+					$this->host = null;
+				}
 				return true;
 			}
 			else
@@ -643,6 +652,10 @@ class IRI
 		{
 			$this->host = $this->replace_invalid_with_pct_encoding($host, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=', self::lowercase);
 			$this->valid[__FUNCTION__] = true;
+			if (isset($this->normalization[$this->scheme]['host']) && $this->host === $this->normalization[$this->scheme]['host'])
+			{
+				$this->host = null;
+			}
 			return true;
 		}
 	}
@@ -666,6 +679,10 @@ class IRI
 		{
 			$this->port = (int) $port;
 			$this->valid[__FUNCTION__] = true;
+			if (isset($this->normalization[$this->scheme]['port']) && $this->port === $this->normalization[$this->scheme]['port'])
+			{
+				$this->port = null;
+			}
 			return true;
 		}
 		else
@@ -703,6 +720,10 @@ class IRI
 			{
 				$this->path = $this->remove_dot_segments($this->path);
 			}
+			if (isset($this->normalization[$this->scheme]['path']) && $this->path === $this->normalization[$this->scheme]['path'])
+			{
+				$this->path = null;
+			}
 			$this->valid[__FUNCTION__] = true;
 			return true;
 		}
@@ -723,6 +744,10 @@ class IRI
 		else
 		{
 			$this->query = $this->replace_invalid_with_pct_encoding($query, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:@/?');
+			if (isset($this->normalization[$this->scheme]['query']) && $this->query === $this->normalization[$this->scheme]['query'])
+			{
+				$this->query = null;
+			}
 		}
 		$this->valid[__FUNCTION__] = true;
 		return true;
@@ -743,6 +768,10 @@ class IRI
 		else
 		{
 			$this->fragment = $this->replace_invalid_with_pct_encoding($fragment, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:@/?');
+			if (isset($this->normalization[$this->scheme]['fragment']) && $this->fragment === $this->normalization[$this->scheme]['fragment'])
+			{
+				$this->fragment = null;
+			}
 		}
 		$this->valid[__FUNCTION__] = true;
 		return true;

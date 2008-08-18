@@ -106,13 +106,6 @@ class IRI
 	 * @var string
 	 */
 	private $fragment;
-
-	/**
-	 * Whether the object represents a valid IRI
-	 *
-	 * @var array
-	 */
-	private $valid = array();
 	
 	/**
 	 * Normalization database
@@ -177,7 +170,7 @@ class IRI
 		{
 			$return = call_user_func(array($this, 'get_' . $name));
 		}
-		elseif ($name !== 'valid' && isset($this->$name))
+		elseif (isset($this->$name))
 		{
 			$return = $this->$name;
 		}
@@ -204,7 +197,7 @@ class IRI
 	 */
 	public function __isset($name)
 	{
-		if (method_exists($this, 'get_' . $name) || ($name !== 'valid' && isset($this->$name)))
+		if (method_exists($this, 'get_' . $name) || isset($this->$name))
 		{
 			return true;
 		}
@@ -486,13 +479,46 @@ class IRI
 	}
 
 	/**
-	 * Check if the object represents a valid IRI
+	 * Check if the object represents a valid IRI. This needs to be done on each
+	 * call as some things change depending on another part of the IRI.
 	 *
 	 * @return bool
 	 */
 	public function is_valid()
 	{
-		return array_sum($this->valid) === count($this->valid);
+		if ($this->scheme !== null)
+		{
+			$len = strlen($scheme);
+			switch (true)
+			{
+				case $len > 1:
+					if (!strspn($scheme, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-.', 1))
+					{
+						return false;
+					}
+
+				case $len > 0:
+					if (!strspn($scheme, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 0, 1))
+					{
+						return false;
+					}
+			}
+		}
+		
+		if ($this->host !== null && $this->host[0] === '[' && substr($this->host, -1) === ']' && !filter_var(substr($this->host, 1, -1), FILTER_VALIDATE_IP, FILTER_FLAG_IPV6))
+		{
+			return false;
+		}
+		
+		if ($this->port !== null && strspn($this->port, '0123456789') !== strlen($this->port))
+		{
+			return false;
+		}
+		
+		if ($this->path !== null && substr($this->path, 0, 2) === '//' && $this->authority === null)
+		{
+			return false;
+		}
 	}
 
 	/**
@@ -535,7 +561,6 @@ class IRI
 					if (!strspn($scheme, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-.', 1))
 					{
 						$this->scheme = null;
-						$this->valid[__FUNCTION__] = false;
 						return false;
 					}
 
@@ -543,13 +568,11 @@ class IRI
 					if (!strspn($scheme, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 0, 1))
 					{
 						$this->scheme = null;
-						$this->valid[__FUNCTION__] = false;
 						return false;
 					}
 			}
 			$this->scheme = strtolower($scheme);
 		}
-		$this->valid[__FUNCTION__] = true;
 		return true;
 	}
 
@@ -610,7 +633,6 @@ class IRI
 			}
 		}
 		
-		$this->valid[__FUNCTION__] = true;
 		return true;
 	}
 
@@ -626,7 +648,6 @@ class IRI
 		if ($host === null || $host === '')
 		{
 			$this->host = null;
-			$this->valid[__FUNCTION__] = true;
 			return true;
 		}
 		elseif ($host[0] === '[' && substr($host, -1) === ']')
@@ -634,7 +655,6 @@ class IRI
 			if (filter_var(substr($host, 1, -1), FILTER_VALIDATE_IP, FILTER_FLAG_IPV6))
 			{
 				$this->host = $host;
-				$this->valid[__FUNCTION__] = true;
 				if (isset($this->normalization[$this->scheme]['host']) && $this->host === $this->normalization[$this->scheme]['host'])
 				{
 					$this->host = null;
@@ -644,14 +664,12 @@ class IRI
 			else
 			{
 				$this->host = null;
-				$this->valid[__FUNCTION__] = false;
 				return false;
 			}
 		}
 		else
 		{
 			$this->host = $this->replace_invalid_with_pct_encoding($host, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=', self::lowercase);
-			$this->valid[__FUNCTION__] = true;
 			if (isset($this->normalization[$this->scheme]['host']) && $this->host === $this->normalization[$this->scheme]['host'])
 			{
 				$this->host = null;
@@ -672,13 +690,11 @@ class IRI
 		if ($port === null || $port === '')
 		{
 			$this->port = null;
-			$this->valid[__FUNCTION__] = true;
 			return true;
 		}
 		elseif (strspn($port, '0123456789') === strlen($port))
 		{
 			$this->port = (int) $port;
-			$this->valid[__FUNCTION__] = true;
 			if (isset($this->normalization[$this->scheme]['port']) && $this->port === $this->normalization[$this->scheme]['port'])
 			{
 				$this->port = null;
@@ -688,7 +704,6 @@ class IRI
 		else
 		{
 			$this->port = null;
-			$this->valid[__FUNCTION__] = false;
 			return false;
 		}
 	}
@@ -704,13 +719,11 @@ class IRI
 		if ($path === null || $path === '')
 		{
 			$this->path = null;
-			$this->valid[__FUNCTION__] = true;
 			return true;
 		}
-		elseif (substr($path, 0, 2) === '//' && $this->userinfo === null && $this->host === null && $this->port === null)
+		elseif (substr($path, 0, 2) === '//' && $this->authority === null)
 		{
 			$this->path = null;
-			$this->valid[__FUNCTION__] = false;
 			return false;
 		}
 		else
@@ -724,7 +737,6 @@ class IRI
 			{
 				$this->path = null;
 			}
-			$this->valid[__FUNCTION__] = true;
 			return true;
 		}
 	}
@@ -749,7 +761,6 @@ class IRI
 				$this->query = null;
 			}
 		}
-		$this->valid[__FUNCTION__] = true;
 		return true;
 	}
 
@@ -773,7 +784,6 @@ class IRI
 				$this->fragment = null;
 			}
 		}
-		$this->valid[__FUNCTION__] = true;
 		return true;
 	}
 

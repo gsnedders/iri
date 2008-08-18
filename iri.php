@@ -535,6 +535,10 @@ class IRI
 					{
 						return false;
 					}
+					break;
+				
+				case $len === 0:
+					return false;
 			}
 		}
 		

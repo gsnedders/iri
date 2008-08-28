@@ -459,7 +459,6 @@ class IRI
 		// Loop as long as we have invalid characters, advancing the position to the next invalid character
 		while (($position += strspn($string, $valid_chars, $position)) < $strlen)
 		{
-			//var_dump($string, $string[$position]);
 			// If we have a % character
 			if ($string[$position] === '%')
 			{

@@ -445,11 +445,11 @@ class IRI
 		// Normalise case
 		if ($case & self::lowercase)
 		{
-			$string = strtolower($string);
+			$string = $this->ascii_strtolower($string);
 		}
 		elseif ($case & self::uppercase)
 		{
-			$string = strtoupper($string);
+			$string = $this->ascii_strtoupper($string);
 		}
 
 		// Store position and string length (to avoid constantly recalculating this)
@@ -473,11 +473,11 @@ class IRI
 					{
 						if ($case & self::lowercase)
 						{
-							$chr = strtolower($chr);
+							$chr = $this->ascii_strtolower($chr);
 						}
 						elseif ($case & self::uppercase)
 						{
-							$chr = strtoupper($chr);
+							$chr = $this->ascii_strtoupper($chr);
 						}
 						$string = substr_replace($string, $chr, $position, 3);
 						$strlen -= 2;
@@ -508,6 +508,84 @@ class IRI
 			}
 		}
 		return $string;
+	}
+	
+	/**
+	 * US-ASCII strtolower()
+	 *
+	 * @param string $string
+	 * @return string
+	 */
+	private function ascii_strtolower($string)
+	{
+		static $table = array(
+			'A' => 'a',
+			'B' => 'b',
+			'C' => 'c',
+			'D' => 'd',
+			'E' => 'e',
+			'F' => 'f',
+			'G' => 'g',
+			'H' => 'h',
+			'I' => 'i',
+			'J' => 'j',
+			'K' => 'k',
+			'L' => 'l',
+			'M' => 'm',
+			'N' => 'n',
+			'O' => 'o',
+			'P' => 'p',
+			'Q' => 'q',
+			'R' => 'r',
+			'S' => 's',
+			'T' => 't',
+			'U' => 'u',
+			'V' => 'v',
+			'W' => 'w',
+			'X' => 'x',
+			'Y' => 'y',
+			'Z' => 'z'
+		);
+		return strtr($string, $table);
+	}
+	
+	/**
+	 * US-ASCII strtoupper()
+	 *
+	 * @param string $string
+	 * @return string
+	 */
+	private function ascii_strtoupper($string)
+	{
+		static $table = array(
+			'a' => 'A',
+			'b' => 'B',
+			'c' => 'C',
+			'd' => 'D',
+			'e' => 'E',
+			'f' => 'F',
+			'g' => 'G',
+			'h' => 'H',
+			'i' => 'I',
+			'j' => 'J',
+			'k' => 'K',
+			'l' => 'L',
+			'm' => 'M',
+			'n' => 'N',
+			'o' => 'O',
+			'p' => 'P',
+			'q' => 'Q',
+			'r' => 'R',
+			's' => 'S',
+			't' => 'T',
+			'u' => 'U',
+			'v' => 'V',
+			'w' => 'W',
+			'x' => 'X',
+			'y' => 'Y',
+			'z' => 'Z'
+		);
+		return strtr($string, $table);
 	}
 
 	/**

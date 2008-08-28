@@ -180,6 +180,8 @@ class IRITest extends PHPUnit_Framework_TestCase
 			array('http://[0:0:0:0:0:0:0:1]', 'http://[::1]'),
 			array('http://[0:0:0:0:0:0:0:1]:', 'http://[::1]'),
 			array('http://[0:0:0:0:0:0:0:1]:80', 'http://[::1]'),
+			array('http://xn--tdali-d8a8w.lv/', 'http://tūdaliņ.lv/'),
+			array('http://t%C5%ABdali%C5%86.lv/', 'http://tūdaliņ.lv/'),
 		);
 	}
  

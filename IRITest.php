@@ -180,7 +180,6 @@ class IRITest extends PHPUnit_Framework_TestCase
 			array('http://[0:0:0:0:0:0:0:1]', 'http://[::1]'),
 			array('http://[0:0:0:0:0:0:0:1]:', 'http://[::1]'),
 			array('http://[0:0:0:0:0:0:0:1]:80', 'http://[::1]'),
-			array('http://É.com', 'http://%C3%89.com'),
 		);
 	}
  
@@ -201,6 +200,40 @@ class IRITest extends PHPUnit_Framework_TestCase
 		$input = new IRI($input);
 		$output = new IRI($output);
 		$this->assertEquals($output, $input);
+	}
+	
+	public static function equivalence_tests()
+	{
+		return array(
+			array('http://É.com', 'http://%C3%89.com'),
+		);
+	}
+ 
+	/**
+	 * @dataProvider equivalence_tests
+	 */
+	public function testObjectEquivalence($input, $output)
+	{
+		$input = new IRI($input);
+		$output = new IRI($output);
+		$this->assertEquals($output, $input);
+	}
+	
+	public static function not_equivalence_tests()
+	{
+		return array(
+			array('http://example.com/foo/bar', 'http://example.com/foo%2Fbar'),
+		);
+	}
+ 
+	/**
+	 * @dataProvider not_equivalence_tests
+	 */
+	public function testObjectNotEquivalence($input, $output)
+	{
+		$input = new IRI($input);
+		$output = new IRI($output);
+		$this->assertNotEquals($output, $input);
 	}
 }
 

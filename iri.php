@@ -10,15 +10,15 @@
  * modification, are permitted provided that the following conditions are met:
  *
  * 	* Redistributions of source code must retain the above copyright notice,
- *	  this list of conditions and the following disclaimer.
+ *		 this list of conditions and the following disclaimer.
  *
  * 	* Redistributions in binary form must reproduce the above copyright notice,
- *	  this list of conditions and the following disclaimer in the documentation
- *	  and/or other materials provided with the distribution.
+ *		 this list of conditions and the following disclaimer in the documentation
+ *		 and/or other materials provided with the distribution.
  *
  * 	* Neither the name of the SimplePie Team nor the names of its contributors
- *	  may be used to endorse or promote products derived from this software
- *	  without specific prior written permission.
+ *		 may be used to endorse or promote products derived from this software
+ *		 without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -252,13 +252,13 @@ class IRI
 			$relative = new IRI($relative);
 			if ($relative->scheme !== null)
 			{
-				$target = $relative;
+				$target = clone $relative;
 			}
 			elseif ($base->iri !== null)
 			{
 				if ($relative->authority !== null)
 				{
-					$target = $relative;
+					$target = clone $relative;
 					$target->set_scheme($base->scheme);
 				}
 				else
@@ -314,6 +314,17 @@ class IRI
 			$target = $base;
 		}
 		return $target;
+	}
+
+	/**
+	 * Create a new IRI object by creating a relative IRI from two IRIs
+	 *
+	 * @param IRI $base Base IRI
+	 * @param IRI $destination Destination IRI
+	 * @return IRI
+	 */
+	public static function build_relative(IRI $base, IRI $destination)
+	{
 	}
 
 	/**
@@ -1025,8 +1036,8 @@ class Net_IPv6
 	 * '::'. This method expects a valid IPv6 address and expands the '::' to
 	 * the required number of zero pieces.
 	 *
-	 * Example:	 FF01::101  ->  FF01:0:0:0:0:0:0:101
-	 *           ::1        ->  0:0:0:0:0:0:0:1
+	 * Example:	 FF01::101	 ->	 FF01:0:0:0:0:0:0:101
+	 *			  ::1		 ->	 0:0:0:0:0:0:0:1
 	 *
 	 * @author Alexander Merz <alexander.merz@web.de>
 	 * @author elfrink at introweb dot nl
@@ -1103,8 +1114,8 @@ class Net_IPv6
 	 * '::'. This method expects a valid IPv6 address and compresses consecutive
 	 * zero pieces to '::'.
 	 *
-	 * Example:	 FF01:0:0:0:0:0:0:101  ->  FF01::101
-	 *           0:0:0:0:0:0:0:1       ->  ::1
+	 * Example:	 FF01:0:0:0:0:0:0:101	->	FF01::101
+	 *			  0:0:0:0:0:0:0:1		->	::1
 	 *
 	 * @see uncompress()
 	 * @param string $ip An IPv6 address
@@ -1203,7 +1214,7 @@ class Net_IPv6
 	 * using the standard IPv4 representation
 	 *
 	 * Example:	 0:0:0:0:0:0:13.1.68.3
-	 *           0:0:0:0:0:FFFF:129.144.52.38
+	 *			  0:0:0:0:0:FFFF:129.144.52.38
 	 *
 	 * @param string $ip An IPv6 address
 	 * @return array [0] contains the IPv6 represented part, and [1] the IPv4 represented part

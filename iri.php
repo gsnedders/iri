@@ -241,15 +241,17 @@ class IRI
      * Create a new IRI object by resolving a relative IRI
      *
      * @param IRI $base Base IRI
-     * @param string $relative Relative IRI
+     * @param IRI|string $relative Relative IRI
      * @return IRI
      */
     public static function absolutize(IRI $base, $relative)
     {
-        $relative = (string) $relative;
-        if ($relative !== '')
+        if (!($relative instanceof IRI))
         {
-            $relative = new IRI($relative);
+            $relative = new IRI((string) $relative);
+        }
+        if ($relative->iri !== '')
+        {
             if ($relative->scheme !== null)
             {
                 $target = clone $relative;

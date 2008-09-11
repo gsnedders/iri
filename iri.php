@@ -848,11 +848,6 @@ class IRI
             $this->path = null;
             return true;
         }
-        elseif (substr($path, 0, 2) === '//' && $this->authority === null)
-        {
-            $this->path = null;
-            return false;
-        }
         else
         {
             $this->path = $this->replace_invalid_with_pct_encoding($path, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=@/');

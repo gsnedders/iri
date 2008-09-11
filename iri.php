@@ -783,7 +783,7 @@ class IRI
      */
     private function set_port($port)
     {
-        if ($port === null || $port === '')
+        if ($port === null)
         {
             $this->port = null;
             return true;
@@ -812,7 +812,7 @@ class IRI
      */
     private function set_path($path)
     {
-        if ($path === null || $path === '')
+        if ($path === null)
         {
             $this->path = null;
             return true;

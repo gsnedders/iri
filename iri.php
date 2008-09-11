@@ -478,31 +478,8 @@ class IRI
                 // If we have a pct-encoded section
                 if ($position + 2 < $strlen && strspn($string, '0123456789ABCDEFabcdef', $position + 1, 2) === 2)
                 {
-                    // Get the the represented character
-                    $chr = chr(hexdec(substr($string, $position + 1, 2)));
-
-                    // If the character is valid, replace the pct-encoded with the actual character while normalising case
-                    if (strpos($valid_chars, $chr) !== false)
-                    {
-                        if ($case & self::lowercase)
-                        {
-                            $chr = $this->ascii_strtolower($chr);
-                        }
-                        elseif ($case & self::uppercase)
-                        {
-                            $chr = $this->ascii_strtoupper($chr);
-                        }
-                        $string = substr_replace($string, $chr, $position, 3);
-                        $strlen -= 2;
-                        $position++;
-                    }
-
-                    // Otherwise just normalise the pct-encoded to uppercase
-                    else
-                    {
-                        $string = substr_replace($string, strtoupper(substr($string, $position + 1, 2)), $position + 1, 2);
-                        $position += 3;
-                    }
+                    $string = substr_replace($string, strtoupper(substr($string, $position + 1, 2)), $position + 1, 2);
+                    $position += 3;
                 }
                 // If we don't have a pct-encoded section, just replace the % with its own esccaped form
                 else

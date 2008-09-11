@@ -611,7 +611,8 @@ class IRI
         
         if ($this->path !== null && (
             substr($this->path, 0, 2) === '//' && $this->get_authority() === null
-            || substr($this->path, 0, 1) !== '/' && $this->get_authority() !== null))
+            || substr($this->path, 0, 1) !== '/' && $this->path !== '' && $this->get_authority() !== null
+            ))
         {
             return false;
         }

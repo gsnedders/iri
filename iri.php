@@ -453,18 +453,8 @@ class IRI
      * @param int $case Normalise case
      * @return string
      */
-    private function replace_invalid_with_pct_encoding($string, $valid_chars, $case = self::same_case)
+    private function replace_invalid_with_pct_encoding($string, $valid_chars)
     {
-        // Normalise case
-        if ($case & self::lowercase)
-        {
-            $string = $this->ascii_strtolower($string);
-        }
-        elseif ($case & self::uppercase)
-        {
-            $string = $this->ascii_strtoupper($string);
-        }
-
         // Store position and string length (to avoid constantly recalculating this)
         $position = 0;
         $strlen = strlen($string);
@@ -771,7 +761,8 @@ class IRI
         }
         else
         {
-            $this->host = $this->replace_invalid_with_pct_encoding($host, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=', self::lowercase);
+            $host = $this->ascii_strtolower($host);
+            $this->host = $this->replace_invalid_with_pct_encoding($host, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=');
         }
         
         if (isset($this->normalization[$this->scheme]['host']) && $this->host === $this->normalization[$this->scheme]['host'])

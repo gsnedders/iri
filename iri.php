@@ -470,12 +470,16 @@ class IRI
             $position++;
         }
         
-        // New string
+        // Run UTF-8 decoder on $string, escaping invalid sequences (whether it
+        // be invalid UTF-8 or a character disallowed in $valid_chars)
+        
+        // Initialize the new string (this is what will be returned) and that
+        // there are no bytes remaining in the current sequence (unsurprising
+        // at the first byte!).
         $new_string = '';
         $remaining = 0;
         
-        // Run UTF-8 decoder on $string, checking if each chr is valid, if not
-        // escape the invalid chr/bytes as pct-encoded.
+        // Loop over each and every byte, and set $value to its ordinal value
         for ($i = 0, $len = strlen($string); $i < $len; $i++)
         {
             $value = ord($string[$i]);

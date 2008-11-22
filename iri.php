@@ -917,7 +917,14 @@ class IRI
         }
         else
         {
-            $this->path = $this->replace_invalid_with_pct_encoding($path, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=@/');
+            $path = explode('/', $path);
+            $this->path = '';
+            foreach ($path as $segment)
+            {
+                $this->path .= $this->replace_invalid_with_pct_encoding($segment, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=@');
+                $this->path .= '/';
+            }
+            $this->path = substr($this->path, 0, -1);
             if ($this->scheme !== null)
             {
                 $this->path = $this->remove_dot_segments($this->path);

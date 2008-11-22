@@ -450,7 +450,6 @@ class IRI
      *
      * @param string $string Input string
      * @param string $valid_chars Valid characters
-     * @param int $case Normalise case
      * @return string
      */
     private function replace_invalid_with_pct_encoding($string, $valid_chars)
@@ -459,35 +458,134 @@ class IRI
         $position = 0;
         $strlen = strlen($string);
 
-        // Loop as long as we have invalid characters, advancing the position to the next invalid character
-        while (($position += strspn($string, $valid_chars, $position)) < $strlen)
+        // Remove pct-encoded
+        while (($position += strcspn($string, '%', $position)) < $strlen)
         {
-            // If we have a % character
-            if ($string[$position] === '%')
+            // If we have a pct-encoded section
+            if ($position + 2 < $strlen && strspn($string, '0123456789ABCDEFabcdef', $position + 1, 2) === 2)
             {
-                // If we have a pct-encoded section
-                if ($position + 2 < $strlen && strspn($string, '0123456789ABCDEFabcdef', $position + 1, 2) === 2)
+                $string = substr_replace($string, chr(hexdec(substr($string, $position + 1, 2))), $position, 3);
+                $strlen -= 2;
+            }
+            $position++;
+        }
+        
+        // New string
+        $new_string = '';
+        $remaining = 0;
+        
+        // Run UTF-8 decoder on $string, checking if each chr is valid, if not
+        // escape the invalid chr/bytes as pct-encoded.
+        for ($i = 0, $len = strlen($string); $i < $len; $i++)
+        {
+            $value = ord($string[$i]);
+            
+            // If we're the first byte of sequence:
+            if (!$remaining)
+            {
+                // By default we are valid
+                $valid = true;
+                
+                // One byte sequence:
+                if ($value <= 0x7F)
                 {
-                    $string = substr_replace($string, strtoupper(substr($string, $position + 1, 2)), $position + 1, 2);
-                    $position += 3;
+                    $character = $value;
+                    $length = 1;
                 }
-                // If we don't have a pct-encoded section, just replace the % with its own esccaped form
+                // Two byte sequence:
+                elseif (($value & 0xE0) === 0xC0)
+                {
+                    $character = ($value & 0x1F) << 6;
+                    $length = 2;
+                    $remaining = 1;
+                }
+                // Three byte sequence:
+                elseif (($value & 0xF0) === 0xE0)
+                {
+                    $character = ($value & 0x0F) << 12;
+                    $length = 3;
+                    $remaining = 2;
+                }
+                // Four byte sequence:
+                elseif (($value & 0xF8) === 0xF0)
+                {
+                    $character = ($value & 0x07) << 18;
+                    $length = 4;
+                    $remaining = 3;
+                }
+                // Invalid byte:
                 else
                 {
-                    $string = substr_replace($string, '%25', $position, 1);
-                    $strlen += 2;
-                    $position += 3;
+                    $valid = false;
+                    $remaining = 0;
                 }
+                $character_bytes = array($string[$i]);
             }
-            // If we have an invalid character, change into its pct-encoded form
+            // Continuation byte:
             else
             {
-                $string = str_replace($string[$position], sprintf('%%%02X', ord($string[$position])), $string, $count);
-                $strlen += 2 * $count;
-                $position += 3;
+                // Check that the byte is valid, then add it to the character:
+                if (($value & 0xC0) === 0x80)
+                {
+                    $remaining--;
+                    $character |= ($value & 0x3F) << ($remaining * 6);
+                    $character_bytes[] = $string[$i];
+                }
+                // If it is invalid, count the sequence as invalid and reprocess the current byte as the start of a sequence:
+                else
+                {
+                    $valid = false;
+                    $remaining = 0;
+                    $i--;
+                }
+            }
+            
+            // If we've reached the end of the current byte sequence, append it to Unicode::$data
+            if (!$remaining)
+            {
+                // pct-encode invalid sequences
+                if (!$valid
+                    // Non-shortest form sequences are invalid
+                    || $length > 1 && $character <= 0x7F
+                    || $length > 2 && $character <= 0x7FF
+                    || $length > 3 && $character <= 0xFFFF
+                    // Outside of Unicode codespace
+                    || $character < 0
+                    || $character > 0x10FFFF
+                    // UTF-16 Surrogates
+                    || $character >= 0xD800 && $character <= 0xDFFF
+                    // Noncharacters
+                    || ($character & 0xFFFE) === 0xFFFE
+                    || $character >= 0xFDD0 && $character <= 0xFDEF
+                    // Disallowed character
+                    || strpos($valid_chars, implode('', $character_bytes)) === false)
+                {
+                    foreach ($character_bytes as $byte)
+                    {
+                        $new_string .= sprintf('%%%02X', ord($byte));
+                    }
+                }
+                else
+                {
+                    foreach ($character_bytes as $byte)
+                    {
+                        $new_string .= $byte;
+                    }
+                }
             }
         }
-        return $string;
+        
+        // If we have any bytes left over they are invalid (i.e., we are
+        // mid-way through a multi-byte sequence)
+        if ($remaining)
+        {
+            foreach ($character_bytes as $byte)
+            {
+                $new_string .= sprintf('%%%02X', ord($byte));
+            }
+        }
+        
+        return $new_string;
     }
     
     /**

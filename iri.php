@@ -35,7 +35,7 @@
  * @package IRI
  * @author Geoffrey Sneddon
  * @author Steve Minutillo
- * @copyright 2007-2008 Geoffrey Sneddon and Steve Minutillo
+ * @copyright 2007-2009 Geoffrey Sneddon and Steve Minutillo
  * @license http://www.opensource.org/licenses/bsd-license.php
  * @link http://hg.gsnedders.com/iri/
  *

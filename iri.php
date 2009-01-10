@@ -337,51 +337,35 @@ class IRI
      */
     private function parse_iri($iri)
     {
+        $iri = trim($iri, "\x20\x09\x0A\x0C\x0D");
         static $cache = array();
         if (isset($cache[$iri]))
         {
             return $cache[$iri];
         }
-        elseif (preg_match('/^(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/', $iri, $match))
+        elseif (preg_match('/^((?P<scheme>[^:\/?#]+):)?(\/\/(?P<authority>[^\/?#]*))?(?P<path>[^?#]*)(\?(?P<query>[^#]*))?(#(?P<fragment>.*))?$/', $iri, $match))
         {
-            for ($i = 1, $len = count($match); $i < $len; $i++)
+            if (!isset($match[1]) || $match[1] === '')
             {
-                switch ($i)
-                {
-                    case 1:
-                        $regex = '/^(?:([^:\/?#]+):)(?:\/\/([^\/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/';
-                        break;
-                    
-                    case 2:
-                        $regex = '/^(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/';
-                        break;
-                    
-                    case 4:
-                        $regex = '/^(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*)(?:\?([^#]*))(?:#(.*))?$/';
-                        break;
-                    
-                    case 5:
-                        $regex = '/^(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))$/';
-                        break;
-                }
-                
-                if ($i === 3)
-                {
-                    if ($match[3] === '')
-                    {
-                        $match[3] = null;
-                    }
-                }
-                elseif (!preg_match($regex, $iri))
-                {
-                    $match[$i] = null;
-                }
+                $match['scheme'] = null;
             }
-            for ($i = count($match); $i <= 5; $i++)
+            if (!isset($match[3]) || $match[3] === '')
             {
-                $match[$i] = null;
+                $match['authority'] = null;
             }
-            return $cache[$iri] = array('scheme' => $match[1], 'authority' => $match[2], 'path' => $match[3], 'query' => $match[4], 'fragment' => $match[5]);
+            if (!isset($match[5]) || $match[5] === '')
+            {
+                $match['path'] = null;
+            }
+            if (!isset($match[6]) || $match[6] === '')
+            {
+                $match['query'] = null;
+            }
+            if (!isset($match[8]) || $match[8] === '')
+            {
+                $match['fragment'] = null;
+            }
+            return $cache[$iri] = $match;
         }
     }
 

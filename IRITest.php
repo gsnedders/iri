@@ -158,7 +158,7 @@ class IRITest extends PHPUnit_Framework_TestCase
 	public static function absolutize_tests()
 	{
 		return array(
-			array('http://example.com/', 'foo/111:bar', 'http://example.com/foo/111:foo'),
+			array('http://example.com/', 'foo/111:bar', 'http://example.com/foo/111:bar'),
 		);
 	}
  
@@ -188,6 +188,8 @@ class IRITest extends PHPUnit_Framework_TestCase
 			array('eXAMPLE://a/./b/../b/%63/%7bfoo%7d', 'example://a/b/c/%7Bfoo%7D'),
 			array('example://%61/b/c/%7Bfoo%7D', 'example://a/b/c/%7Bfoo%7D'),
 			array('example://%41/b/c/%7Bfoo%7D', 'example://a/b/c/%7Bfoo%7D'),
+			array('example://A/b/c/%7Bfoo%7D', 'example://a/b/c/%7Bfoo%7D'),
+			array('example://a/b/c/%7Bfoo%7D', 'example://a/b/c/%7Bfoo%7D'),
 			array('HTTP://EXAMPLE.com/', 'http://example.com'),
 			array('http://example.com/', 'http://example.com'),
 			array('http://example.com:', 'http://example.com'),
@@ -218,6 +220,11 @@ class IRITest extends PHPUnit_Framework_TestCase
 			array('http:..', 'http:'),
 			array('http:./', 'http:'),
 			array('http:../', 'http:'),
+			array('http://example.com/%3A', 'http://example.com/%3A'),
+			array('http://example.com/%C2', 'http://example.com/%C2'),
+			array('http://example.com/%61', 'http://example.com/a'),
+			array('http://example.com?%26', 'http://example.com?%26'),
+			array('http://example.com?%61', 'http://example.com?a'),
 		);
 	}
  

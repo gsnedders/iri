@@ -258,7 +258,7 @@ class IRI
             }
             elseif ($base->iri !== null)
             {
-                if ($relative->authority !== null)
+                if ($relative->iauthority !== null)
                 {
                     $target = clone $relative;
                     $target->set_scheme($base->scheme);
@@ -640,8 +640,8 @@ class IRI
         }
         
         if ($this->path !== null && (
-            substr($this->path, 0, 2) === '//' && $this->get_authority() === null
-            || substr($this->path, 0, 1) !== '/' && $this->path !== '' && $this->get_authority() !== null
+            substr($this->path, 0, 2) === '//' && $this->get_iauthority() === null
+            || substr($this->path, 0, 1) !== '/' && $this->path !== '' && $this->get_iauthority() !== null
             ))
         {
             return false;
@@ -662,7 +662,7 @@ class IRI
         $parsed = $this->parse_iri((string) $iri);
         
         return $this->set_scheme($parsed['scheme'])
-            && $this->set_authority($parsed['authority'])
+            && $this->set_iauthority($parsed['authority'])
             && $this->set_path($parsed['path'])
             && $this->set_query($parsed['query'])
             && $this->set_fragment($parsed['fragment']);
@@ -939,6 +939,29 @@ class IRI
     }
 
     /**
+     * Convert an IRI to a URI (or parts thereof)
+     *
+     * @return string
+     */
+    private function to_uri($string)
+    {
+        static $non_ascii;
+        if (!$non_ascii)
+            $non_ascii = implode('', range("\x80", "\xFF"));
+        
+        $position = 0;
+        $strlen = strlen($string);
+        while (($position += strcspn($string, $non_ascii, $position)) < $strlen)
+        {
+            $string = substr_replace($string, sprintf('%%%02X', ord($string[$position])), $position, 1);
+            $position += 3;
+            $strlen += 2;
+        }
+        
+        return $string;
+    }
+
+    /**
      * Get the complete IRI
      *
      * @return string
@@ -950,9 +973,9 @@ class IRI
         {
             $iri .= $this->scheme . ':';
         }
-        if (($authority = $this->authority) !== null)
+        if (($iauthority = $this->iauthority) !== null)
         {
-            $iri .= '//' . $authority;
+            $iri .= '//' . $iauthority;
         }
         if ($this->path !== null)
         {
@@ -978,34 +1001,62 @@ class IRI
     }
 
     /**
+     * Get the complete URI
+     *
+     * @return string
+     */
+    private function get_uri()
+    {
+        $iri = $this->iri;
+        if (is_string($iri))
+            return $this->to_uri($iri);
+        else
+            return $iri;
+    }
+
+    /**
+     * Get the complete iauthority
+     *
+     * @return string
+     */
+    private function get_iauthority()
+    {
+        $iauthority = '';
+        if ($this->userinfo !== null)
+        {
+            $iauthority .= $this->userinfo . '@';
+        }
+        if ($this->host !== null)
+        {
+            $iauthority .= $this->host;
+        }
+        if ($this->port !== null)
+        {
+            $iauthority .= ':' . $this->port;
+        }
+
+        if ($this->userinfo !== null || $this->host !== null || $this->port !== null)
+        {
+            return $iauthority;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    /**
      * Get the complete authority
      *
      * @return string
      */
     private function get_authority()
     {
-        $authority = '';
-        if ($this->userinfo !== null)
-        {
-            $authority .= $this->userinfo . '@';
-        }
-        if ($this->host !== null)
-        {
-            $authority .= $this->host;
-        }
-        if ($this->port !== null)
-        {
-            $authority .= ':' . $this->port;
-        }
-
-        if ($this->userinfo !== null || $this->host !== null || $this->port !== null)
-        {
-            return $authority;
-        }
+        $iauthority = $this->iauthority;
+        if (is_string($iauthority))
+            return $this->to_uri($iauthority);
         else
-        {
-            return null;
-        }
+            return $iauthority;
     }
 }
 

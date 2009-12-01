@@ -3,7 +3,7 @@
 /**
  * IRI parser/serialiser/normaliser
  *
- * Copyright (c) 2007-2008, Geoffrey Sneddon and Steve Minutillo.
+ * Copyright (c) 2007-2009, Geoffrey Sneddon and Steve Minutillo.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

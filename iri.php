@@ -438,35 +438,53 @@ class IRI
      */
     private function replace_invalid_with_pct_encoding($string, $valid_chars)
     {
-        // Store position and string length (to avoid constantly recalculating this)
+        // Replace invalid percent characters
+        $string = preg_replace('/%($|[^A-Fa-f0-9]|[A-Fa-f0-9][^A-Fa-f0-9])/', '%25\1', $string);
+        
+        // Normalize as many pct-encoded sections as possible
+        $string = preg_replace_callback('/(?:%[A-Fa-f0-9]{2})+/', array(&$this, 'remove_iunreserved_percent_encoded'), $string);
+        
+        // We now know all pct-encoded sections are conforming and are fully normalized
+        $valid_chars .= '%';
+        
+        // Now replace any bytes that aren't allowed with their pct-encoded versions
         $position = 0;
         $strlen = strlen($string);
-
-        // Remove pct-encoded
-        while (($position += strcspn($string, '%', $position)) < $strlen)
+        while (($position += strspn($string, $valid_chars, $position)) < $strlen)
         {
-            // If we have a pct-encoded section
-            if ($position + 2 < $strlen && strspn($string, '0123456789ABCDEFabcdef', $position + 1, 2) === 2)
-            {
-                $string = substr_replace($string, chr(hexdec(substr($string, $position + 1, 2))), $position, 3);
-                $strlen -= 2;
-            }
-            $position++;
+            $string = substr_replace($string, sprintf('%%%02X', ord($string[$position])), $position, 1);
+            $position += 3;
+            $strlen += 2;
         }
         
-        // Run UTF-8 decoder on $string, escaping invalid sequences (whether it
-        // be invalid UTF-8 or a character disallowed in $valid_chars)
+        return $string;
+    }
+
+    /**
+     * Callback function for preg_replace_callback.
+     *
+     * Removes sequences of percent encoded bytes that represent UTF-8
+     * encoded characters in iunreserved
+     *
+     * @param array $match PCRE match
+     * @return string Replacement
+     */
+    private function remove_iunreserved_percent_encoded($match)
+    {
+        // As we just have valid percent encoded sequences we can just explode
+        // and ignore the first member of the returned array (an empty string).
+        $bytes = explode('%', $match[0]);
         
         // Initialize the new string (this is what will be returned) and that
         // there are no bytes remaining in the current sequence (unsurprising
         // at the first byte!).
-        $new_string = '';
+        $string = '';
         $remaining = 0;
         
-        // Loop over each and every byte, and set $value to its ordinal value
-        for ($i = 0, $len = strlen($string); $i < $len; $i++)
+        // Loop over each and every byte, and set $value to its value
+        for ($i = 1, $len = count($bytes); $i < $len; $i++)
         {
-            $value = ord($string[$i]);
+            $value = hexdec($bytes[$i]);
             
             // If we're the first byte of sequence:
             if (!$remaining)
@@ -507,7 +525,6 @@ class IRI
                     $valid = false;
                     $remaining = 0;
                 }
-                $character_bytes = array($string[$i]);
             }
             // Continuation byte:
             else
@@ -517,7 +534,6 @@ class IRI
                 {
                     $remaining--;
                     $character |= ($value & 0x3F) << ($remaining * 6);
-                    $character_bytes[] = $string[$i];
                 }
                 // If it is invalid, count the sequence as invalid and reprocess the current byte as the start of a sequence:
                 else
@@ -531,33 +547,39 @@ class IRI
             // If we've reached the end of the current byte sequence, append it to Unicode::$data
             if (!$remaining)
             {
-                // pct-encode invalid sequences
-                if (!$valid
+                // Percent encode anything invalid or not in iunreserved
+                if (
+                    // Invalid sequences
+                    !$valid
                     // Non-shortest form sequences are invalid
                     || $length > 1 && $character <= 0x7F
                     || $length > 2 && $character <= 0x7FF
                     || $length > 3 && $character <= 0xFFFF
-                    // Outside of Unicode codespace
-                    || $character < 0
-                    || $character > 0x10FFFF
-                    // UTF-16 Surrogates
-                    || $character >= 0xD800 && $character <= 0xDFFF
+                    // Outside of range of iunreserved codepoints
+                    || $character < 0x2D
+                    || $character > 0xEFFFD
                     // Noncharacters
                     || ($character & 0xFFFE) === 0xFFFE
                     || $character >= 0xFDD0 && $character <= 0xFDEF
-                    // Disallowed character
-                    || strpos($valid_chars, implode('', $character_bytes)) === false)
+                    // Everything else not in iunreserved (this is all BMP)
+                    || $character === 0x2F
+                    || $character > 0x39 && $character < 0x41
+                    || $character > 0x5A && $character < 0x61
+                    || $character > 0x7A && $character < 0x7E
+                    || $character > 0x7E && $character < 0xA0
+                    || $character > 0xD7FF && $character < 0xF900
+                )
                 {
-                    foreach ($character_bytes as $byte)
+                    for ($j = $i - $length + 1; $j <= $i; $j++)
                     {
-                        $new_string .= sprintf('%%%02X', ord($byte));
+                        $string .= '%' . strtoupper($bytes[$j]);
                     }
                 }
                 else
                 {
-                    foreach ($character_bytes as $byte)
+                    for ($j = $i - $length + 1; $j <= $i; $j++)
                     {
-                        $new_string .= $byte;
+                        $string .= chr(hexdec($bytes[$j]));
                     }
                 }
             }
@@ -567,13 +589,13 @@ class IRI
         // mid-way through a multi-byte sequence)
         if ($remaining)
         {
-            foreach ($character_bytes as $byte)
+            for ($j = $len - $length + $remaining; $j < $len; $j++)
             {
-                $new_string .= sprintf('%%%02X', ord($byte));
+                $string .= '%' . strtoupper($bytes[$j]);
             }
         }
         
-        return $new_string;
+        return $string;
     }
     
     /**

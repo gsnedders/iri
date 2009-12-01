@@ -662,7 +662,7 @@ class IRI
         $parsed = $this->parse_iri((string) $iri);
         
         return $this->set_scheme($parsed['scheme'])
-            && $this->set_iauthority($parsed['authority'])
+            && $this->set_authority($parsed['authority'])
             && $this->set_path($parsed['path'])
             && $this->set_query($parsed['query'])
             && $this->set_fragment($parsed['fragment']);

@@ -870,8 +870,31 @@ class IRI
         }
         else
         {
-            $host = $this->ascii_strtolower($host);
-            $this->host = $this->replace_invalid_with_pct_encoding($host, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=');
+            $host = $this->replace_invalid_with_pct_encoding($host, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=');
+            
+            // Lowercase, but ignore pct-encoded sections (as they should
+            // remain uppercase). This must be done after the previous step
+            // as that can add unescaped characters.
+            static $important_chars;
+            if (!$important_chars)
+                $important_chars = implode('', range('A', 'Z')) . '%';
+            
+            $position = 0;
+            $strlen = strlen($host);
+            while (($position += strcspn($host, $important_chars, $position)) < $strlen)
+            {
+                if ($host[$position] === '%')
+                {
+                    $position += 3;
+                }
+                else
+                {
+                    $host[$position] = strtolower($host[$position]);
+                    $position++;
+                }
+            }
+            
+            $this->host = $host;
         }
         
         if (isset($this->normalization[$this->scheme]['host']) && $this->host === $this->normalization[$this->scheme]['host'])

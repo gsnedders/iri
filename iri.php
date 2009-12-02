@@ -929,7 +929,7 @@ class IRI
             $this->port = null;
             return true;
         }
-        elseif (ctype_digit($port))
+        elseif (strspn($port, '0123456789') === strlen($port))
         {
             $this->port = (int) $port;
             if (isset($this->normalization[$this->scheme]['port']) && $this->port === $this->normalization[$this->scheme]['port'])

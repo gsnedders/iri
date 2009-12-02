@@ -433,10 +433,12 @@ class IRI
      * Replace invalid character with percent encoding
      *
      * @param string $string Input string
-     * @param string $valid_chars Valid characters
+     * @param string $extra_chars Valid characters not in iunreserved or
+     *                            iprivate (this is ASCII-only)
+     * @param bool $iprivate Allow iprivate
      * @return string
      */
-    private function replace_invalid_with_pct_encoding($string, $valid_chars)
+    private function replace_invalid_with_pct_encoding($string, $extra_chars, $iprivate = false)
     {
         // Replace invalid percent characters
         $string = preg_replace('/%($|[^A-Fa-f0-9]|[A-Fa-f0-9][^A-Fa-f0-9])/', '%25\1', $string);
@@ -444,17 +446,120 @@ class IRI
         // Normalize as many pct-encoded sections as possible
         $string = preg_replace_callback('/(?:%[A-Fa-f0-9]{2})+/', array(&$this, 'remove_iunreserved_percent_encoded'), $string);
         
-        // We now know all pct-encoded sections are conforming and are fully normalized
-        $valid_chars .= '%';
+        // Add unreserved and % to $extra_chars (the latter is safe because all
+        // pct-encoded sections are now valid).
+        $extra_chars .= 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~%';
         
         // Now replace any bytes that aren't allowed with their pct-encoded versions
         $position = 0;
         $strlen = strlen($string);
-        while (($position += strspn($string, $valid_chars, $position)) < $strlen)
+        while (($position += strspn($string, $extra_chars, $position)) < $strlen)
         {
-            $string = substr_replace($string, sprintf('%%%02X', ord($string[$position])), $position, 1);
-            $position += 3;
-            $strlen += 2;
+            $value = ord($string[$position]);
+            
+            // Start position
+            $start = $position;
+        
+            // By default we are valid
+            $valid = true;
+            
+            // No one byte sequences are valid due to the while.
+            // Two byte sequence:
+            if (($value & 0xE0) === 0xC0)
+            {
+                $character = ($value & 0x1F) << 6;
+                $length = 2;
+                $remaining = 1;
+            }
+            // Three byte sequence:
+            elseif (($value & 0xF0) === 0xE0)
+            {
+                $character = ($value & 0x0F) << 12;
+                $length = 3;
+                $remaining = 2;
+            }
+            // Four byte sequence:
+            elseif (($value & 0xF8) === 0xF0)
+            {
+                $character = ($value & 0x07) << 18;
+                $length = 4;
+                $remaining = 3;
+            }
+            // Invalid byte:
+            else
+            {
+                $valid = false;
+                $length = 1;
+                $remaining = 0;
+            }
+            
+            if ($remaining)
+            {
+                if ($position + $length <= $strlen)
+                {
+                    for ($position++; $remaining; $position++)
+                    {
+                        $value = ord($string[$position]);
+                        
+                        // Check that the byte is valid, then add it to the character:
+                        if (($value & 0xC0) === 0x80)
+                        {
+                            $character |= ($value & 0x3F) << (--$remaining * 6);
+                        }
+                        // If it is invalid, count the sequence as invalid and reprocess the current byte:
+                        else
+                        {
+                            $valid = false;
+                            $position--;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    $position = $strlen - 1;
+                    $valid = false;
+                }
+            }
+                
+            // Percent encode anything invalid or not in ucschar
+            if (
+                // Invalid sequences
+                !$valid
+                // Non-shortest form sequences are invalid
+                || $length > 1 && $character <= 0x7F
+                || $length > 2 && $character <= 0x7FF
+                || $length > 3 && $character <= 0xFFFF
+                // Outside of range of ucschar codepoints
+                // Noncharacters
+                || ($character & 0xFFFE) === 0xFFFE
+                || $character >= 0xFDD0 && $character <= 0xFDEF
+                || (
+                    // Everything else not in ucschar
+                       $character > 0xD7FF && $character < 0xF900
+                    || $character < 0xA0
+                    || $character > 0xEFFFD
+                )
+                && (
+                    // Everything not in iprivate, if it applies
+                       !$iprivate
+                    || $character < 0xE000
+                    || $character > 0x10FFFD
+                )
+            )
+            {
+                // If we were a character, pretend we weren't, but rather an error.
+                if ($valid)
+                    $position--;
+                    
+                for ($j = $start; $j <= $position; $j++)
+                {
+                    $string = substr_replace($string, sprintf('%%%02X', ord($string[$j])), $j, 1);
+                    $j += 2;
+                    $position += 2;
+                    $strlen += 2;
+                }
+            }
         }
         
         return $string;
@@ -489,6 +594,9 @@ class IRI
             // If we're the first byte of sequence:
             if (!$remaining)
             {
+                // Start position
+                $start = $i;
+                
                 // By default we are valid
                 $valid = true;
                 
@@ -570,14 +678,14 @@ class IRI
                     || $character > 0xD7FF && $character < 0xF900
                 )
                 {
-                    for ($j = $i - $length + 1; $j <= $i; $j++)
+                    for ($j = $start; $j <= $i; $j++)
                     {
                         $string .= '%' . strtoupper($bytes[$j]);
                     }
                 }
                 else
                 {
-                    for ($j = $i - $length + 1; $j <= $i; $j++)
+                    for ($j = $start; $j <= $i; $j++)
                     {
                         $string .= chr(hexdec($bytes[$j]));
                     }
@@ -589,7 +697,7 @@ class IRI
         // mid-way through a multi-byte sequence)
         if ($remaining)
         {
-            for ($j = $len - $length + $remaining; $j < $len; $j++)
+            for ($j = $start; $j < $len; $j++)
             {
                 $string .= '%' . strtoupper($bytes[$j]);
             }
@@ -753,7 +861,7 @@ class IRI
         }
         else
         {
-            $this->userinfo = $this->replace_invalid_with_pct_encoding($userinfo, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:');
+            $this->userinfo = $this->replace_invalid_with_pct_encoding($userinfo, '!$&\'()*+,;=:');
             
             if (isset($this->normalization[$this->scheme]['userinfo']) && $this->userinfo === $this->normalization[$this->scheme]['userinfo'])
             {
@@ -792,7 +900,7 @@ class IRI
         }
         else
         {
-            $host = $this->replace_invalid_with_pct_encoding($host, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=');
+            $host = $this->replace_invalid_with_pct_encoding($host, '!$&\'()*+,;=');
             
             // Lowercase, but ignore pct-encoded sections (as they should
             // remain uppercase). This must be done after the previous step
@@ -876,7 +984,7 @@ class IRI
             $this->path = '';
             foreach ($path as $segment)
             {
-                $this->path .= $this->replace_invalid_with_pct_encoding($segment, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=@');
+                $this->path .= $this->replace_invalid_with_pct_encoding($segment, '!$&\'()*+,;=@');
                 $this->path .= '/';
             }
             $this->path = substr($this->path, 0, -1);
@@ -906,7 +1014,7 @@ class IRI
         }
         else
         {
-            $this->query = $this->replace_invalid_with_pct_encoding($query, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:@/?');
+            $this->query = $this->replace_invalid_with_pct_encoding($query, '!$&\'()*+,;=:@/?', true);
             if (isset($this->normalization[$this->scheme]['query']) && $this->query === $this->normalization[$this->scheme]['query'])
             {
                 $this->query = null;
@@ -929,7 +1037,7 @@ class IRI
         }
         else
         {
-            $this->fragment = $this->replace_invalid_with_pct_encoding($fragment, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&\'()*+,;=:@/?');
+            $this->fragment = $this->replace_invalid_with_pct_encoding($fragment, '!$&\'()*+,;=:@/?');
             if (isset($this->normalization[$this->scheme]['fragment']) && $this->fragment === $this->normalization[$this->scheme]['fragment'])
             {
                 $this->fragment = null;

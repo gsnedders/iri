@@ -789,25 +789,20 @@ class IRI
         {
             $this->scheme = null;
         }
+        elseif (
+               !($scheme = (string) $scheme)
+            || !isset($scheme[0])
+            || $scheme[0] < 'A'
+            || $scheme[0] > 'Z' && $scheme[0] < 'a'
+            || $scheme[0] > 'z'
+            || strspn($scheme, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-.') !== strlen($scheme)
+        )
+        {
+            $this->scheme = null;
+            return false;
+        }
         else
         {
-            $len = strlen($scheme);
-            switch (true)
-            {
-                case $len > 1:
-                    if (!strspn($scheme, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-.', 1))
-                    {
-                        $this->scheme = null;
-                        return false;
-                    }
-
-                case $len > 0:
-                    if (!strspn($scheme, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 0, 1))
-                    {
-                        $this->scheme = null;
-                        return false;
-                    }
-            }
             $this->scheme = strtolower($scheme);
         }
         return true;

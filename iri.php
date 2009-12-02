@@ -128,7 +128,7 @@ class IRI
             'path' => '/'
         ),
         'https' => array(
-            'port' => 80,
+            'port' => 443,
             'path' => '/'
         ),
     );

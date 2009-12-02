@@ -44,21 +44,6 @@
 class IRI
 {
     /**
-     * Don't change case
-     */
-    const same_case = 1;
-
-    /**
-     * Change to lowercase
-     */
-    const lowercase = 2;
-
-    /**
-     * Change to uppercase
-     */
-    const uppercase = 4;
-
-    /**
      * Scheme
      *
      * @var string

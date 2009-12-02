@@ -885,11 +885,9 @@ class IRI
             // Lowercase, but ignore pct-encoded sections (as they should
             // remain uppercase). This must be done after the previous step
             // as that can add unescaped characters.
-            static $important_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ%';
-            
             $position = 0;
             $strlen = strlen($host);
-            while (($position += strcspn($host, $important_chars, $position)) < $strlen)
+            while (($position += strcspn($host, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ%', $position)) < $strlen)
             {
                 if ($host[$position] === '%')
                 {

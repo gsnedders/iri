@@ -225,25 +225,27 @@ class IRI
     /**
      * Create a new IRI object by resolving a relative IRI
      *
-     * @param IRI $base Base IRI
+     * Returns false if $base is not absolute, otherwise an IRI.
+     *
+     * @param IRI $base (Absolute) Base IRI
      * @param IRI|string $relative Relative IRI
-     * @return IRI
+     * @return IRI|false
      */
     public static function absolutize(IRI $base, $relative)
     {
         if (!($relative instanceof IRI))
         {
-            $relative = new IRI((string) $relative);
+            $relative = new IRI($relative);
         }
-        if ($relative->iri !== '')
+        if ($base->scheme !== null)
         {
-            if ($relative->scheme !== null)
+            if ($relative->iri !== '' && $relative->iri !== null)
             {
-                $target = clone $relative;
-            }
-            elseif ($base->iri !== null)
-            {
-                if ($relative->iauthority !== null)
+                if ($relative->scheme !== null)
+                {
+                    $target = clone $relative;
+                }
+                elseif ($relative->iauthority !== null)
                 {
                     $target = clone $relative;
                     $target->set_scheme($base->scheme);
@@ -287,21 +289,20 @@ class IRI
                             $target->set_query($base->query);
                         }
                     }
+                    $target->set_fragment($relative->fragment);
                 }
-                $target->set_fragment($relative->fragment);
             }
             else
             {
-                // No base URL, just return the relative URL
-                $target = clone $relative;
+                $target = clone $base;
+                $target->set_fragment(null);
             }
+            return $target;
         }
         else
         {
-            $target = clone $base;
-            $target->set_fragment(null);
+            return false;
         }
-        return $target;
     }
 
     /**

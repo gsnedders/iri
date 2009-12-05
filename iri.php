@@ -141,6 +141,17 @@ class IRI
         {
             call_user_func(array($this, 'set_' . $name), $value);
         }
+        elseif (
+               $name === 'iauthority'
+            || $name === 'iuserinfo'
+            || $name === 'ihost'
+            || $name === 'ipath'
+            || $name === 'iquery'
+            || $name === 'ifragment'
+        )
+        {
+            call_user_func(array($this, 'set_' . substr($name, 1)), $value);
+        }
     }
 
     /**
@@ -165,6 +176,7 @@ class IRI
         }
         else
         {
+            trigger_error('Undefined property: ' . get_class($this) . '::' . $name, E_USER_NOTICE);
             $return = null;
         }
         

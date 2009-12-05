@@ -72,11 +72,11 @@ class IRI
     private $port;
 
     /**
-     * Path
+     * ipath
      *
      * @var string
      */
-    private $path;
+    private $ipath;
 
     /**
      * Query
@@ -110,11 +110,11 @@ class IRI
         ),
         'http' => array(
             'port' => 80,
-            'path' => '/'
+            'ipath' => '/'
         ),
         'https' => array(
             'port' => 443,
-            'path' => '/'
+            'ipath' => '/'
         ),
     );
 
@@ -257,29 +257,29 @@ class IRI
                     $target->set_userinfo($base->userinfo);
                     $target->set_host($base->host);
                     $target->set_port($base->port);
-                    if ($relative->path !== '')
+                    if ($relative->ipath !== '')
                     {
-                        if ($relative->path[0] === '/')
+                        if ($relative->ipath[0] === '/')
                         {
-                            $target->set_path($relative->path);
+                            $target->set_path($relative->ipath);
                         }
-                        elseif (($base->userinfo !== null || $base->host !== null || $base->port !== null) && $base->path === null)
+                        elseif (($base->userinfo !== null || $base->host !== null || $base->port !== null) && $base->ipath === null)
                         {
-                            $target->set_path('/' . $relative->path);
+                            $target->set_path('/' . $relative->ipath);
                         }
-                        elseif (($last_segment = strrpos($base->path, '/')) !== false)
+                        elseif (($last_segment = strrpos($base->ipath, '/')) !== false)
                         {
-                            $target->set_path(substr($base->path, 0, $last_segment + 1) . $relative->path);
+                            $target->set_path(substr($base->ipath, 0, $last_segment + 1) . $relative->ipath);
                         }
                         else
                         {
-                            $target->set_path($relative->path);
+                            $target->set_path($relative->ipath);
                         }
                         $target->set_query($relative->query);
                     }
                     else
                     {
-                        $target->set_path($base->path);
+                        $target->set_path($base->ipath);
                         if ($relative->query !== null)
                         {
                             $target->set_query($relative->query);
@@ -744,9 +744,9 @@ class IRI
             return false;
         }
         
-        if ($this->path !== null && (
-            substr($this->path, 0, 2) === '//' && $this->get_iauthority() === null
-            || substr($this->path, 0, 1) !== '/' && $this->path !== '' && $this->get_iauthority() !== null
+        if ($this->ipath !== null && (
+            substr($this->ipath, 0, 2) === '//' && $this->get_iauthority() === null
+            || substr($this->ipath, 0, 1) !== '/' && $this->ipath !== '' && $this->get_iauthority() !== null
             ))
         {
             return false;
@@ -770,7 +770,7 @@ class IRI
             
             return $this->set_scheme($parsed['scheme'])
                 && $this->set_authority($parsed['authority'])
-                && $this->set_path($parsed['path'])
+                && $this->set_path($parsed['ipath'])
                 && $this->set_query($parsed['query'])
                 && $this->set_fragment($parsed['fragment']);
         }
@@ -957,35 +957,35 @@ class IRI
     }
 
     /**
-     * Set the path.
+     * Set the ipath.
      *
-     * @param string $path
+     * @param string $ipath
      * @return bool
      */
-    private function set_path($path)
+    private function set_path($ipath)
     {
-        if ($path === null)
+        if ($ipath === null)
         {
-            $this->path = null;
+            $this->ipath = null;
             return true;
         }
         else
         {
-            $path = explode('/', $path);
-            $this->path = '';
-            foreach ($path as $segment)
+            $ipath = explode('/', $ipath);
+            $this->ipath = '';
+            foreach ($ipath as $segment)
             {
-                $this->path .= $this->replace_invalid_with_pct_encoding($segment, '!$&\'()*+,;=@');
-                $this->path .= '/';
+                $this->ipath .= $this->replace_invalid_with_pct_encoding($segment, '!$&\'()*+,;=@');
+                $this->ipath .= '/';
             }
-            $this->path = substr($this->path, 0, -1);
+            $this->ipath = substr($this->ipath, 0, -1);
             if ($this->scheme !== null)
             {
-                $this->path = $this->remove_dot_segments($this->path);
+                $this->ipath = $this->remove_dot_segments($this->ipath);
             }
-            if (isset($this->normalization[$this->scheme]['path']) && $this->path === $this->normalization[$this->scheme]['path'])
+            if (isset($this->normalization[$this->scheme]['ipath']) && $this->ipath === $this->normalization[$this->scheme]['ipath'])
             {
-                $this->path = null;
+                $this->ipath = null;
             }
             return true;
         }
@@ -1075,9 +1075,10 @@ class IRI
         {
             $iri .= '//' . $iauthority;
         }
-        if ($this->path !== null)
+        if ($this->ipath !== null)
         {
-            $iri .= $this->path;
+            $iri .= 
+            ;
             $defined = true;
         }
         if ($this->query !== null)

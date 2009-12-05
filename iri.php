@@ -79,11 +79,11 @@ class IRI
     private $ipath;
 
     /**
-     * Query
+     * iquery
      *
      * @var string
      */
-    private $query;
+    private $iquery;
 
     /**
      * Fragment
@@ -275,18 +275,18 @@ class IRI
                         {
                             $target->set_path($relative->ipath);
                         }
-                        $target->set_query($relative->query);
+                        $target->set_query($relative->iquery);
                     }
                     else
                     {
                         $target->set_path($base->ipath);
-                        if ($relative->query !== null)
+                        if ($relative->iquery !== null)
                         {
-                            $target->set_query($relative->query);
+                            $target->set_query($relative->iquery);
                         }
-                        elseif ($base->query !== null)
+                        elseif ($base->iquery !== null)
                         {
-                            $target->set_query($base->query);
+                            $target->set_query($base->iquery);
                         }
                     }
                     $target->set_fragment($relative->fragment);
@@ -992,23 +992,23 @@ class IRI
     }
 
     /**
-     * Set the query.
+     * Set the iquery.
      *
-     * @param string $query
+     * @param string $iquery
      * @return bool
      */
-    private function set_query($query)
+    private function set_query($iquery)
     {
-        if ($query === null)
+        if ($iquery === null)
         {
-            $this->query = null;
+            $this->iquery = null;
         }
         else
         {
-            $this->query = $this->replace_invalid_with_pct_encoding($query, '!$&\'()*+,;=:@/?', true);
-            if (isset($this->normalization[$this->scheme]['query']) && $this->query === $this->normalization[$this->scheme]['query'])
+            $this->iquery = $this->replace_invalid_with_pct_encoding($iquery, '!$&\'()*+,;=:@/?', true);
+            if (isset($this->normalization[$this->scheme]['iquery']) && $this->iquery === $this->normalization[$this->scheme]['iquery'])
             {
-                $this->query = null;
+                $this->iquery = null;
             }
         }
         return true;
@@ -1080,9 +1080,9 @@ class IRI
             $iri .= $this->ipath;
             $defined = true;
         }
-        if ($this->query !== null)
+        if ($this->iquery !== null)
         {
-            $iri .= '?' . $this->query;
+            $iri .= '?' . $this->iquery;
         }
         if ($this->fragment !== null)
         {

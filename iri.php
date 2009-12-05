@@ -976,7 +976,7 @@ class IRI
             $this->ipath = '';
             foreach ($ipath as $segment)
             {
-                $this->ipath .= $this->replace_invalid_with_pct_encoding($segment, '!$&\'()*+,;=@');
+                $this->ipath .= $this->replace_invalid_with_pct_encoding($segment, '!$&\'()*+,;=@:');
                 $this->ipath .= '/';
             }
             $this->ipath = substr($this->ipath, 0, -1);

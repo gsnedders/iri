@@ -770,7 +770,7 @@ class IRI
             
             return $this->set_scheme($parsed['scheme'])
                 && $this->set_authority($parsed['authority'])
-                && $this->set_path($parsed['ipath'])
+                && $this->set_path($parsed['path'])
                 && $this->set_query($parsed['query'])
                 && $this->set_fragment($parsed['fragment']);
         }
@@ -1077,8 +1077,7 @@ class IRI
         }
         if ($this->ipath !== null)
         {
-            $iri .= 
-            ;
+            $iri .= $this->ipath;
             $defined = true;
         }
         if ($this->query !== null)

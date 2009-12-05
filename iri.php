@@ -86,11 +86,11 @@ class IRI
     private $iquery;
 
     /**
-     * Fragment
+     * ifragment
      *
      * @var string
      */
-    private $fragment;
+    private $ifragment;
     
     /**
      * Normalization database
@@ -289,7 +289,7 @@ class IRI
                             $target->set_query($base->iquery);
                         }
                     }
-                    $target->set_fragment($relative->fragment);
+                    $target->set_fragment($relative->ifragment);
                 }
             }
             else
@@ -1015,23 +1015,23 @@ class IRI
     }
 
     /**
-     * Set the fragment.
+     * Set the ifragment.
      *
-     * @param string $fragment
+     * @param string $ifragment
      * @return bool
      */
-    private function set_fragment($fragment)
+    private function set_fragment($ifragment)
     {
-        if ($fragment === null)
+        if ($ifragment === null)
         {
-            $this->fragment = null;
+            $this->ifragment = null;
         }
         else
         {
-            $this->fragment = $this->replace_invalid_with_pct_encoding($fragment, '!$&\'()*+,;=:@/?');
-            if (isset($this->normalization[$this->scheme]['fragment']) && $this->fragment === $this->normalization[$this->scheme]['fragment'])
+            $this->ifragment = $this->replace_invalid_with_pct_encoding($ifragment, '!$&\'()*+,;=:@/?');
+            if (isset($this->normalization[$this->scheme]['ifragment']) && $this->ifragment === $this->normalization[$this->scheme]['ifragment'])
             {
-                $this->fragment = null;
+                $this->ifragment = null;
             }
         }
         return true;
@@ -1084,9 +1084,9 @@ class IRI
         {
             $iri .= '?' . $this->iquery;
         }
-        if ($this->fragment !== null)
+        if ($this->ifragment !== null)
         {
-            $iri .= '#' . $this->fragment;
+            $iri .= '#' . $this->ifragment;
         }
 
         if ($iri !== '' || $defined)

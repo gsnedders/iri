@@ -753,43 +753,12 @@ class IRI
      */
     public function is_valid()
     {
-        if ($this->scheme !== null)
-        {
-            $len = strlen($this->scheme);
-            switch (true)
-            {
-                case $len > 1:
-                    if (!strspn($this->scheme, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-.', 1))
-                    {
-                        return false;
-                    }
-
-                case $len > 0:
-                    if (!strspn($this->scheme, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 0, 1))
-                    {
-                        return false;
-                    }
-                    break;
-                
-                case $len === 0:
-                    return false;
-            }
-        }
-        
-        if ($this->ihost !== null && substr($this->ihost, 0, 1) === '[' && substr($this->ihost, -1) === ']' && !filter_var(substr($this->ihost, 1, -1), FILTER_VALIDATE_IP, FILTER_FLAG_IPV6))
-        {
-            return false;
-        }
-        
-        if ($this->port !== null && !ctype_digit($this->port))
-        {
-            return false;
-        }
-        
         if ($this->ipath !== null && (
-            substr($this->ipath, 0, 2) === '//' && $this->get_iauthority() === null
+               substr($this->ipath, 0, 2) === '//' && $this->get_iauthority() === null
             || substr($this->ipath, 0, 1) !== '/' && $this->ipath !== '' && $this->get_iauthority() !== null
-            ))
+            || strpos($this->ipath, ':') !== false && (strpos($this->ipath, '/') === false ? true : strpos($this->ipath, ':') < strpos($this->ipath, '/')) && $this->scheme === null && $this->get_iauthority() === null
+            )
+        )
         {
             return false;
         }

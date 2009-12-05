@@ -55,7 +55,7 @@ class IRI
      *
      * @var string
      */
-    private $userinfo;
+    private $iuserinfo;
 
     /**
      * Host
@@ -254,7 +254,7 @@ class IRI
                 {
                     $target = new IRI;
                     $target->set_scheme($base->scheme);
-                    $target->set_userinfo($base->userinfo);
+                    $target->set_userinfo($base->iuserinfo);
                     $target->set_host($base->host);
                     $target->set_port($base->port);
                     if ($relative->ipath !== '')
@@ -263,7 +263,7 @@ class IRI
                         {
                             $target->set_path($relative->ipath);
                         }
-                        elseif (($base->userinfo !== null || $base->host !== null || $base->port !== null) && $base->ipath === null)
+                        elseif (($base->iuserinfo !== null || $base->host !== null || $base->port !== null) && $base->ipath === null)
                         {
                             $target->set_path('/' . $relative->ipath);
                         }
@@ -817,14 +817,14 @@ class IRI
      */
     private function set_authority($authority)
     {
-        if (($userinfo_end = strrpos($authority, '@')) !== false)
+        if (($iuserinfo_end = strrpos($authority, '@')) !== false)
         {
-            $userinfo = substr($authority, 0, $userinfo_end);
-            $authority = substr($authority, $userinfo_end + 1);
+            $iuserinfo = substr($authority, 0, $iuserinfo_end);
+            $authority = substr($authority, $iuserinfo_end + 1);
         }
         else
         {
-            $userinfo = null;
+            $iuserinfo = null;
         }
         if (($port_start = strpos($authority, ':', strpos($authority, ']'))) !== false)
         {
@@ -839,28 +839,28 @@ class IRI
             $port = null;
         }
 
-        return $this->set_userinfo($userinfo) && $this->set_host($authority) && $this->set_port($port);
+        return $this->set_userinfo($iuserinfo) && $this->set_host($authority) && $this->set_port($port);
     }
 
     /**
-     * Set the userinfo.
+     * Set the iuserinfo.
      *
-     * @param string $userinfo
+     * @param string $iuserinfo
      * @return bool
      */
-    private function set_userinfo($userinfo)
+    private function set_userinfo($iuserinfo)
     {
-        if ($userinfo === null)
+        if ($iuserinfo === null)
         {
-            $this->userinfo = null;
+            $this->iuserinfo = null;
         }
         else
         {
-            $this->userinfo = $this->replace_invalid_with_pct_encoding($userinfo, '!$&\'()*+,;=:');
+            $this->iuserinfo = $this->replace_invalid_with_pct_encoding($iuserinfo, '!$&\'()*+,;=:');
             
-            if (isset($this->normalization[$this->scheme]['userinfo']) && $this->userinfo === $this->normalization[$this->scheme]['userinfo'])
+            if (isset($this->normalization[$this->scheme]['iuserinfo']) && $this->iuserinfo === $this->normalization[$this->scheme]['iuserinfo'])
             {
-                $this->userinfo = null;
+                $this->iuserinfo = null;
             }
         }
         
@@ -1121,9 +1121,9 @@ class IRI
     private function get_iauthority()
     {
         $iauthority = '';
-        if ($this->userinfo !== null)
+        if ($this->iuserinfo !== null)
         {
-            $iauthority .= $this->userinfo . '@';
+            $iauthority .= $this->iuserinfo . '@';
         }
         if ($this->host !== null)
         {
@@ -1134,7 +1134,7 @@ class IRI
             $iauthority .= ':' . $this->port;
         }
 
-        if ($this->userinfo !== null || $this->host !== null || $this->port !== null)
+        if ($this->iuserinfo !== null || $this->host !== null || $this->port !== null)
         {
             return $iauthority;
         }

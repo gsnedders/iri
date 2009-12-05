@@ -259,7 +259,7 @@ class IRI
                     $target->set_port($base->port);
                     if ($relative->path !== '')
                     {
-                        if (strpos($relative->path, '/') === 0)
+                        if ($relative->path[0] === '/')
                         {
                             $target->set_path($relative->path);
                         }

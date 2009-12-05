@@ -159,6 +159,7 @@ class IRITest extends PHPUnit_Framework_TestCase
 	{
 		return array(
 			array('http://example.com/', 'foo/111:bar', 'http://example.com/foo/111:bar'),
+			array('http://example.com/#foo', '', 'http://example.com'),
 		);
 	}
  
@@ -253,6 +254,7 @@ class IRITest extends PHPUnit_Framework_TestCase
 			array('http://example.com/%61', 'http://example.com/a'),
 			array('http://example.com?%26', 'http://example.com?%26'),
 			array('http://example.com?%61', 'http://example.com?a'),
+			array('///', '///'),
 		);
 	}
  

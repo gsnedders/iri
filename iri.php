@@ -217,7 +217,7 @@ class IRI
      * @param string $iri
      * @return IRI
      */
-    public function __construct($iri = '')
+    public function __construct($iri = null)
     {
         $this->set_iri($iri);
     }
@@ -250,12 +250,12 @@ class IRI
                 }
                 else
                 {
-                    $target = new IRI('');
+                    $target = new IRI;
                     $target->set_scheme($base->scheme);
                     $target->set_userinfo($base->userinfo);
                     $target->set_host($base->host);
                     $target->set_port($base->port);
-                    if ($relative->path !== null)
+                    if ($relative->path !== '')
                     {
                         if (strpos($relative->path, '/') === 0)
                         {
@@ -293,12 +293,13 @@ class IRI
             else
             {
                 // No base URL, just return the relative URL
-                $target = $relative;
+                $target = clone $relative;
             }
         }
         else
         {
-            $target = $base;
+            $target = clone $base;
+            $target->set_fragment(null);
         }
         return $target;
     }
@@ -328,6 +329,16 @@ class IRI
         {
             return $cache[$iri];
         }
+        elseif ($iri === '')
+        {
+            return $cache[$iri] = array(
+                'scheme' => null,
+                'authority' => null,
+                'path' => '',
+                'query' => null,
+                'fragment' => null
+            );
+        }
         elseif (preg_match('/^((?P<scheme>[^:\/?#]+):)?(\/\/(?P<authority>[^\/?#]*))?(?P<path>[^?#]*)(\?(?P<query>[^#]*))?(#(?P<fragment>.*))?$/', $iri, $match))
         {
             if (!isset($match[1]) || $match[1] === '')
@@ -340,7 +351,7 @@ class IRI
             }
             if (!isset($match[5]) || $match[5] === '')
             {
-                $match['path'] = null;
+                $match['path'] = '';
             }
             if (!isset($match[6]) || $match[6] === '')
             {
@@ -752,13 +763,16 @@ class IRI
      */
     private function set_iri($iri)
     {
-        $parsed = $this->parse_iri((string) $iri);
-        
-        return $this->set_scheme($parsed['scheme'])
-            && $this->set_authority($parsed['authority'])
-            && $this->set_path($parsed['path'])
-            && $this->set_query($parsed['query'])
-            && $this->set_fragment($parsed['fragment']);
+        if ($iri !== null)
+        {
+            $parsed = $this->parse_iri((string) $iri);
+            
+            return $this->set_scheme($parsed['scheme'])
+                && $this->set_authority($parsed['authority'])
+                && $this->set_path($parsed['path'])
+                && $this->set_query($parsed['query'])
+                && $this->set_fragment($parsed['fragment']);
+        }
     }
 
     /**
@@ -1051,6 +1065,7 @@ class IRI
     private function get_iri()
     {
         $iri = '';
+        $defined = false;
         if ($this->scheme !== null)
         {
             $iri .= $this->scheme . ':';
@@ -1062,6 +1077,7 @@ class IRI
         if ($this->path !== null)
         {
             $iri .= $this->path;
+            $defined = true;
         }
         if ($this->query !== null)
         {
@@ -1072,7 +1088,7 @@ class IRI
             $iri .= '#' . $this->fragment;
         }
 
-        if ($iri !== '')
+        if ($iri !== '' || $defined)
         {
             return $iri;
         }

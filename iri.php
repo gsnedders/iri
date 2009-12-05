@@ -260,55 +260,57 @@ class IRI
                 elseif ($relative->iauthority !== null)
                 {
                     $target = clone $relative;
-                    $target->set_scheme($base->scheme);
+                    $target->scheme = $base->scheme;
                 }
                 else
                 {
                     $target = new IRI;
-                    $target->set_scheme($base->scheme);
-                    $target->set_userinfo($base->iuserinfo);
-                    $target->set_host($base->ihost);
-                    $target->set_port($base->port);
+                    $target->scheme = $base->scheme;
+                    $target->iuserinfo = $base->iuserinfo;
+                    $target->ihost = $base->ihost;
+                    $target->port = $base->port;
                     if ($relative->ipath !== '')
                     {
                         if ($relative->ipath[0] === '/')
                         {
-                            $target->set_path($relative->ipath);
+                            $target->ipath = $relative->ipath;
                         }
                         elseif (($base->iuserinfo !== null || $base->ihost !== null || $base->port !== null) && $base->ipath === null)
                         {
-                            $target->set_path('/' . $relative->ipath);
+                            $target->ipath = '/' . $relative->ipath;
                         }
                         elseif (($last_segment = strrpos($base->ipath, '/')) !== false)
                         {
-                            $target->set_path(substr($base->ipath, 0, $last_segment + 1) . $relative->ipath);
+                            $target->ipath = substr($base->ipath, 0, $last_segment + 1) . $relative->ipath;
                         }
                         else
                         {
-                            $target->set_path($relative->ipath);
+                            $target->ipath = $relative->ipath;
                         }
-                        $target->set_query($relative->iquery);
+                        $target->ipath = $target->remove_dot_segments($target->ipath);
+                        $target->iquery = $relative->iquery;
                     }
                     else
                     {
-                        $target->set_path($base->ipath);
+                        $target->ipath = $base->ipath;
                         if ($relative->iquery !== null)
                         {
-                            $target->set_query($relative->iquery);
+                            $target->iquery = $relative->iquery;
                         }
                         elseif ($base->iquery !== null)
                         {
-                            $target->set_query($base->iquery);
+                            $target->iquery = $base->iquery;
                         }
                     }
-                    $target->set_fragment($relative->ifragment);
+                    $target->ifragment = $relative->ifragment;
                 }
             }
             else
             {
                 $target = clone $base;
-                $target->set_fragment(null);
+                $target->ifragment = null;
             }
+            $target->scheme_normalization();
             return $target;
         }
         else
@@ -714,6 +716,34 @@ class IRI
         
         return $string;
     }
+    
+    private function scheme_normalization()
+    {
+        if (isset($this->normalization[$this->scheme]['iuserinfo']) && $this->iuserinfo === $this->normalization[$this->scheme]['iuserinfo'])
+        {
+            $this->iuserinfo = null;
+        }
+        if (isset($this->normalization[$this->scheme]['ihost']) && $this->ihost === $this->normalization[$this->scheme]['ihost'])
+        {
+            $this->ihost = null;
+        }
+        if (isset($this->normalization[$this->scheme]['port']) && $this->port === $this->normalization[$this->scheme]['port'])
+        {
+            $this->port = null;
+        }
+        if (isset($this->normalization[$this->scheme]['ipath']) && $this->ipath === $this->normalization[$this->scheme]['ipath'])
+        {
+            $this->ipath = null;
+        }
+        if (isset($this->normalization[$this->scheme]['iquery']) && $this->iquery === $this->normalization[$this->scheme]['iquery'])
+        {
+            $this->iquery = null;
+        }
+        if (isset($this->normalization[$this->scheme]['ifragment']) && $this->ifragment === $this->normalization[$this->scheme]['ifragment'])
+        {
+            $this->ifragment = null;
+        }
+    }
 
     /**
      * Check if the object represents a valid IRI. This needs to be done on each
@@ -869,11 +899,7 @@ class IRI
         else
         {
             $this->iuserinfo = $this->replace_invalid_with_pct_encoding($iuserinfo, '!$&\'()*+,;=:');
-            
-            if (isset($this->normalization[$this->scheme]['iuserinfo']) && $this->iuserinfo === $this->normalization[$this->scheme]['iuserinfo'])
-            {
-                $this->iuserinfo = null;
-            }
+            $this->scheme_normalization();
         }
         
         return true;
@@ -930,10 +956,7 @@ class IRI
             $this->ihost = $ihost;
         }
         
-        if (isset($this->normalization[$this->scheme]['ihost']) && $this->ihost === $this->normalization[$this->scheme]['ihost'])
-        {
-            $this->ihost = null;
-        }
+        $this->scheme_normalization();
         
         return true;
     }
@@ -955,10 +978,7 @@ class IRI
         elseif (strspn($port, '0123456789') === strlen($port))
         {
             $this->port = (int) $port;
-            if (isset($this->normalization[$this->scheme]['port']) && $this->port === $this->normalization[$this->scheme]['port'])
-            {
-                $this->port = null;
-            }
+            $this->scheme_normalization();
             return true;
         }
         else
@@ -995,10 +1015,7 @@ class IRI
             {
                 $this->ipath = $this->remove_dot_segments($this->ipath);
             }
-            if (isset($this->normalization[$this->scheme]['ipath']) && $this->ipath === $this->normalization[$this->scheme]['ipath'])
-            {
-                $this->ipath = null;
-            }
+            $this->scheme_normalization();
             return true;
         }
     }
@@ -1018,10 +1035,7 @@ class IRI
         else
         {
             $this->iquery = $this->replace_invalid_with_pct_encoding($iquery, '!$&\'()*+,;=:@/?', true);
-            if (isset($this->normalization[$this->scheme]['iquery']) && $this->iquery === $this->normalization[$this->scheme]['iquery'])
-            {
-                $this->iquery = null;
-            }
+            $this->scheme_normalization();
         }
         return true;
     }
@@ -1041,10 +1055,7 @@ class IRI
         else
         {
             $this->ifragment = $this->replace_invalid_with_pct_encoding($ifragment, '!$&\'()*+,;=:@/?');
-            if (isset($this->normalization[$this->scheme]['ifragment']) && $this->ifragment === $this->normalization[$this->scheme]['ifragment'])
-            {
-                $this->ifragment = null;
-            }
+            $this->scheme_normalization();
         }
         return true;
     }

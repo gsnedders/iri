@@ -58,11 +58,11 @@ class IRI
     private $iuserinfo;
 
     /**
-     * Host
+     * ihost
      *
      * @var string
      */
-    private $host;
+    private $ihost;
 
     /**
      * Port
@@ -106,7 +106,7 @@ class IRI
             'port' => 2628
         ),
         'file' => array(
-            'host' => 'localhost'
+            'ihost' => 'localhost'
         ),
         'http' => array(
             'port' => 80,
@@ -255,7 +255,7 @@ class IRI
                     $target = new IRI;
                     $target->set_scheme($base->scheme);
                     $target->set_userinfo($base->iuserinfo);
-                    $target->set_host($base->host);
+                    $target->set_host($base->ihost);
                     $target->set_port($base->port);
                     if ($relative->ipath !== '')
                     {
@@ -263,7 +263,7 @@ class IRI
                         {
                             $target->set_path($relative->ipath);
                         }
-                        elseif (($base->iuserinfo !== null || $base->host !== null || $base->port !== null) && $base->ipath === null)
+                        elseif (($base->iuserinfo !== null || $base->ihost !== null || $base->port !== null) && $base->ipath === null)
                         {
                             $target->set_path('/' . $relative->ipath);
                         }
@@ -734,7 +734,7 @@ class IRI
             }
         }
         
-        if ($this->host !== null && substr($this->host, 0, 1) === '[' && substr($this->host, -1) === ']' && !filter_var(substr($this->host, 1, -1), FILTER_VALIDATE_IP, FILTER_FLAG_IPV6))
+        if ($this->ihost !== null && substr($this->ihost, 0, 1) === '[' && substr($this->ihost, -1) === ']' && !filter_var(substr($this->ihost, 1, -1), FILTER_VALIDATE_IP, FILTER_FLAG_IPV6))
         {
             return false;
         }
@@ -868,59 +868,59 @@ class IRI
     }
 
     /**
-     * Set the host. Returns true on success, false on failure (if there are
+     * Set the ihost. Returns true on success, false on failure (if there are
      * any invalid characters).
      *
-     * @param string $host
+     * @param string $ihost
      * @return bool
      */
-    private function set_host($host)
+    private function set_host($ihost)
     {
-        if ($host === null)
+        if ($ihost === null)
         {
-            $this->host = null;
+            $this->ihost = null;
             return true;
         }
-        elseif (substr($host, 0, 1) === '[' && substr($host, -1) === ']')
+        elseif (substr($ihost, 0, 1) === '[' && substr($ihost, -1) === ']')
         {
-            if (filter_var(substr($host, 1, -1), FILTER_VALIDATE_IP, FILTER_FLAG_IPV6))
+            if (filter_var(substr($ihost, 1, -1), FILTER_VALIDATE_IP, FILTER_FLAG_IPV6))
             {
-                $this->host = '[' . Net_IPv6::compress(substr($host, 1, -1)) . ']';
+                $this->ihost = '[' . Net_IPv6::compress(substr($ihost, 1, -1)) . ']';
             }
             else
             {
-                $this->host = null;
+                $this->ihost = null;
                 return false;
             }
         }
         else
         {
-            $host = $this->replace_invalid_with_pct_encoding($host, '!$&\'()*+,;=');
+            $ihost = $this->replace_invalid_with_pct_encoding($ihost, '!$&\'()*+,;=');
             
             // Lowercase, but ignore pct-encoded sections (as they should
             // remain uppercase). This must be done after the previous step
             // as that can add unescaped characters.
             $position = 0;
-            $strlen = strlen($host);
-            while (($position += strcspn($host, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ%', $position)) < $strlen)
+            $strlen = strlen($ihost);
+            while (($position += strcspn($ihost, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ%', $position)) < $strlen)
             {
-                if ($host[$position] === '%')
+                if ($ihost[$position] === '%')
                 {
                     $position += 3;
                 }
                 else
                 {
-                    $host[$position] = strtolower($host[$position]);
+                    $ihost[$position] = strtolower($ihost[$position]);
                     $position++;
                 }
             }
             
-            $this->host = $host;
+            $this->ihost = $ihost;
         }
         
-        if (isset($this->normalization[$this->scheme]['host']) && $this->host === $this->normalization[$this->scheme]['host'])
+        if (isset($this->normalization[$this->scheme]['ihost']) && $this->ihost === $this->normalization[$this->scheme]['ihost'])
         {
-            $this->host = null;
+            $this->ihost = null;
         }
         
         return true;
@@ -1125,16 +1125,16 @@ class IRI
         {
             $iauthority .= $this->iuserinfo . '@';
         }
-        if ($this->host !== null)
+        if ($this->ihost !== null)
         {
-            $iauthority .= $this->host;
+            $iauthority .= $this->ihost;
         }
         if ($this->port !== null)
         {
             $iauthority .= ':' . $this->port;
         }
 
-        if ($this->iuserinfo !== null || $this->host !== null || $this->port !== null)
+        if ($this->iuserinfo !== null || $this->ihost !== null || $this->port !== null)
         {
             return $iauthority;
         }

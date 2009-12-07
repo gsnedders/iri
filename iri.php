@@ -1392,7 +1392,6 @@ class Net_IPv6
             return false;
         }
     }
-
 }
 
 ?>

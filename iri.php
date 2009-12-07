@@ -890,7 +890,7 @@ class IRI
         }
         elseif (substr($ihost, 0, 1) === '[' && substr($ihost, -1) === ']')
         {
-            if (filter_var(substr($ihost, 1, -1), FILTER_VALIDATE_IP, FILTER_FLAG_IPV6))
+            if (Net_IPv6::check_ipv6(substr($ihost, 1, -1)))
             {
                 $this->ihost = '[' . Net_IPv6::compress(substr($ihost, 1, -1)) . ']';
             }
@@ -1413,8 +1413,38 @@ class Net_IPv6
      */
     public static function check_ipv6($ip)
     {
-        return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6);
+        $ip = self::uncompress($ip);
+        list($ipv6, $ipv4) = self::split_v6_v4($ip);
+        $ipv6 = explode(':', $ipv6);
+        $ipv4 = explode('.', $ipv4);
+        if (count($ipv6) === 8 && count($ipv4) === 1 || count($ipv6) === 6 && count($ipv4) === 4)
+        {
+            foreach ($ipv6 as $ipv6_part)
+            {
+                $ipv6_part = ltrim($ipv6_part, '0');
+                if ($ipv6_part === '')
+                    $ipv6_part = '0';
+                $value = hexdec($ipv6_part);
+                if (dechex($value) !== strtolower($ipv6_part) || $value < 0 || $value > 0xFFFF)
+                    return false;
+            }
+            if (count($ipv4) === 4)
+            {
+                foreach ($ipv4 as $ipv4_part)
+                {
+                    $value = (int) $ipv4_part;
+                    if ((string) $value !== $ipv4_part || $value < 0 || $value > 0xFF)
+                        return false;
+                }
+            }
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
+
 }
 
 ?>

@@ -1160,44 +1160,6 @@ class IRI
 class Net_IPv6
 {
     /**
-     * Removes any existing address prefix from an IPv6 address.
-     *
-     * @param string $ip The IPv6 address
-     * @return string The IPv6 address the without address prefix
-     */
-    private static function remove_address_prefix($ip)
-    {
-        if (strpos($ip, '/') !== false)
-        {
-            list($addr, $nm) = explode('/', $ip, 2);
-        }
-        else
-        {
-            $addr = $ip;                
-        }
-        return $addr;
-    }
-    
-    /**
-     * Returns any address prefix from an IPv5 address.
-     *
-     * @param string $ip The IPv6 address
-     * @return string The address prefix
-     */
-    private static function get_address_prefix($ip)
-    {
-        if (strpos($ip, '/') !== false)
-        {
-            list($addr, $nm) = explode('/', $ip, 2);
-        }
-        else
-        {
-            $nm = '';               
-        }
-        return $nm;
-    }
-
-    /**
      * Uncompresses an IPv6 address
      *
      * RFC 4291 allows you to compress concecutive zero pieces in an address to
@@ -1217,13 +1179,11 @@ class Net_IPv6
      */
     public static function uncompress($ip)
     {
-        $netmask = self::get_address_prefix($ip);
-        $uip = self::remove_address_prefix($ip);
         $c1 = -1;
         $c2 = -1;
-        if (substr_count($uip, '::') === 1)
+        if (substr_count($ip, '::') === 1)
         {
-            list($ip1, $ip2) = explode('::', $uip);
+            list($ip1, $ip2) = explode('::', $ip);
             if ($ip1 === '')
             {
                 $c1 = -1;
@@ -1247,32 +1207,28 @@ class Net_IPv6
             // ::
             if ($c1 === -1 && $c2 === -1)
             {
-                $uip = '0:0:0:0:0:0:0:0';
+                $ip = '0:0:0:0:0:0:0:0';
             }
             // ::xxx
             else if ($c1 === -1)
             {
                 $fill = str_repeat('0:', 7 - $c2);
-                $uip = str_replace('::', $fill, $uip);
+                $ip = str_replace('::', $fill, $ip);
             }
             // xxx::
             else if ($c2 === -1)
             {
                 $fill = str_repeat(':0', 7 - $c1);
-                $uip = str_replace('::', $fill, $uip);
+                $ip = str_replace('::', $fill, $ip);
             }
             // xxx::xxx
             else
             {
                 $fill = ':' . str_repeat('0:', 6 - $c2 - $c1);
-                $uip = str_replace('::', $fill, $uip);
+                $ip = str_replace('::', $fill, $ip);
             }
         }
-        if ($netmask !== '')
-        {
-            $uip .= "/$netmask";
-        }
-        return $uip;
+        return $ip;
     }
 
     /**
@@ -1293,8 +1249,6 @@ class Net_IPv6
     {
         // Prepare the IP to be compressed
         $ip = self::uncompress($ip);
-        $netmask = self::get_address_prefix($ip);
-        $ip = self::remove_address_prefix($ip);
         $ip_parts = self::split_v6_v4($ip);
         
         // Break up the IP into each seperate part
@@ -1367,11 +1321,6 @@ class Net_IPv6
         {
             $cip .= ":{$ip_parts[1]}";
         }
-        // Re-add any netmask
-        if ($netmask)
-        {
-            $cip .= "/$netmask";
-        }
         return $cip;
     }
 
@@ -1389,7 +1338,6 @@ class Net_IPv6
      */
     private static function split_v6_v4($ip)
     {
-        $ip = self::remove_address_prefix($ip);
         if (strpos($ip, '.') !== false)
         {
             $pos = strrpos($ip, ':');

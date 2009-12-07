@@ -54,7 +54,6 @@ class NetIPv6Test extends PHPUnit_Framework_TestCase
 			array('2010:0588:0000:faef:1428:0000:0000:57ab', '2010:588:0:faef:1428::57ab'),
 			array('0000:0000:0000:588:0000:FAEF:1428:57AB', '::588:0:faef:1428:57ab'),
 			array('0:0:0:0588:0:FAEF:1428:57AB', '::588:0:faef:1428:57ab'),
-			array('2001:4abc:abcd:0000:3744:0000:0000:0000/120', '2001:4abc:abcd:0:3744::/120'),
 			array('FF01:0:0:0:0:0:0:101', 'ff01::101'),
 			array('0:0:0:0:0:0:0:0', '::'),
 			array('0:0:0:0:0:0:0:1', '::1'),
@@ -75,7 +74,6 @@ class NetIPv6Test extends PHPUnit_Framework_TestCase
 	public static function uncompress_tests()
 	{
 		return array(
-			array('2001:4abc:abcd:0:3744::/120', '2001:4abc:abcd:0:3744:0:0:0/120'),
 			array('ff01::101', 'ff01:0:0:0:0:0:0:101'),
 			array('::1', '0:0:0:0:0:0:0:1'),
 			array('1::', '1:0:0:0:0:0:0:0'),

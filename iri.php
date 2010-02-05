@@ -3,7 +3,7 @@
 /**
  * IRI parser/serialiser/normaliser
  *
- * Copyright (c) 2007-2009, Geoffrey Sneddon and Steve Minutillo.
+ * Copyright (c) 2007-2010, Geoffrey Sneddon and Steve Minutillo.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -339,14 +339,9 @@ class IRI
     private function parse_iri($iri)
     {
         $iri = trim($iri, "\x20\x09\x0A\x0C\x0D");
-        static $cache = array();
-        if (isset($cache[$iri]))
+        if ($iri === '')
         {
-            return $cache[$iri];
-        }
-        elseif ($iri === '')
-        {
-            return $cache[$iri] = array(
+            return array(
                 'scheme' => null,
                 'authority' => null,
                 'path' => '',
@@ -376,7 +371,12 @@ class IRI
             {
                 $match['fragment'] = null;
             }
-            return $cache[$iri] = $match;
+            return $match;
+        }
+        else
+        {
+            trigger_error('This should never happen', E_USER_ERROR);
+            die;
         }
     }
 
@@ -775,15 +775,38 @@ class IRI
      */
     private function set_iri($iri)
     {
-        if ($iri !== null)
+        static $cache = array();
+        if (isset($cache[$iri]))
+        {
+            list($this->scheme,
+                 $this->iuserinfo,
+                 $this->ihost,
+                 $this->port,
+                 $this->ipath,
+                 $this->iquery,
+                 $this->ifragment,
+                 $return) = $cache[$iri];
+            return $return;
+        }
+        else
         {
             $parsed = $this->parse_iri((string) $iri);
             
-            return $this->set_scheme($parsed['scheme'])
+            $return = $this->set_scheme($parsed['scheme'])
                 && $this->set_authority($parsed['authority'])
                 && $this->set_path($parsed['path'])
                 && $this->set_query($parsed['query'])
                 && $this->set_fragment($parsed['fragment']);
+                
+            $cache[$iri] = array($this->scheme,
+                                 $this->iuserinfo,
+                                 $this->ihost,
+                                 $this->port,
+                                 $this->ipath,
+                                 $this->iquery,
+                                 $this->ifragment,
+                                 $return);
+            return $return;
         }
     }
 
